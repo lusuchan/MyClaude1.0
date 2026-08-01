@@ -36,8 +36,9 @@ comparing.
 
 ## 3. The watchlist — resolved, your real names are in
 
-**Status: fixed, ready to merge.** My nine-ticker guess is gone. `watchlist.json`
-now holds your seven:
+**Status: fixed, ready to merge —
+[PR #3](https://github.com/lusuchan/MyClaude1.0/pull/3).** My nine-ticker guess
+is gone. `watchlist.json` now holds your seven:
 
 > GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN
 
@@ -109,8 +110,10 @@ putting a job on your machine's schedule is your call, not mine.
   your Anthropic key.
 - **No Phase 2 code.** You asked for research only. Findings are in
   `PHASE2_NOTES.md`; there is not a line of indicator code in the repo.
-- **No PR opened.** Work is committed and pushed to
-  `claude/daily-brief-phase-1-24xgbn`. Say the word if you want it opened.
+- **No PR opened for the Phase 1 build.** That work went up on
+  `claude/daily-brief-phase-1-24xgbn` and is now merged. The watchlist fix is
+  open as [PR #3](https://github.com/lusuchan/MyClaude1.0/pull/3), unmerged and
+  waiting on you.
 
 ## 7. Environment-specific thing you can ignore on your own machine
 
