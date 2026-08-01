@@ -104,6 +104,11 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.dry_run:
         print(result.text)
+    elif result.write_error:
+        # The file could not be written, so send the brief to stdout rather
+        # than discarding work that cost real API calls to produce.
+        print(f"could not write the brief: {result.write_error}", file=sys.stderr)
+        print(result.text)
     else:
         print(f"wrote {result.path}", file=sys.stderr)
 
@@ -112,8 +117,18 @@ def main(argv: list[str] | None = None) -> int:
         print("DEGRADED:", file=sys.stderr)
         for item in result.degradations:
             print(f"  - {item}", file=sys.stderr)
-        if args.strict:
-            return 2
+
+    if not result.usable:
+        print(
+            "no market data and no research — this run produced nothing useful",
+            file=sys.stderr,
+        )
+        return 1
+
+    if result.write_error:
+        return 1
+    if result.degraded and args.strict:
+        return 2
 
     return 0
 

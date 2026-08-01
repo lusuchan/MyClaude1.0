@@ -171,7 +171,10 @@ def write_brief(
     log.info("wrote %s", path)
 
     if also_latest:
-        latest = output_dir / "latest.md"
-        latest.write_text(text, encoding="utf-8")
+        # A failure here must not lose the dated brief that already landed.
+        try:
+            (output_dir / "latest.md").write_text(text, encoding="utf-8")
+        except OSError as exc:
+            log.warning("could not update latest.md: %s", exc)
 
     return path

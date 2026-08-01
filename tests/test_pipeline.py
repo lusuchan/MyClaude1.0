@@ -224,3 +224,39 @@ def test_numbers_in_the_table_come_from_data_not_from_the_model(market, watchlis
     # make_frame closes at 100..129, so the real 1-day move is 129/128 - 1.
     assert "+0.78%" in table
     assert result.snapshot.by_symbol("AAA").change_pct == pytest.approx(0.78125, abs=1e-4)
+
+
+# ---------------------------------------------------------------------------
+# Write failures
+# ---------------------------------------------------------------------------
+
+
+def test_an_unwritable_output_dir_does_not_lose_the_brief(market, watchlist, tmp_path):
+    blocked = tmp_path / "blocked"
+    blocked.write_text("this is a file, not a directory")
+    settings = Settings(api_key="k", output_dir=blocked / "briefs")
+
+    result = run(watchlist, settings, client=client_for(three_good_responses()))
+
+    assert result.path is None
+    assert result.write_error
+    assert "A synthesised day." in result.text, "the brief itself must survive a failed write"
+    assert result.usable
+
+
+def test_usable_is_false_only_when_nothing_worked(market, watchlist, settings):
+    for symbol in ("AAA", "BBB"):
+        market[symbol] = FakeTicker(exc=Exception("No data found"))
+
+    result = run(watchlist, settings, client=client_for([Exception("a"), Exception("b"), Exception("c")]))
+
+    assert not result.usable
+
+
+def test_research_alone_is_still_usable(market, watchlist, settings):
+    for symbol in ("AAA", "BBB"):
+        market[symbol] = FakeTicker(exc=Exception("No data found"))
+
+    result = run(watchlist, settings, client=client_for(three_good_responses()))
+
+    assert result.usable, "macro research with no prices is degraded, not worthless"

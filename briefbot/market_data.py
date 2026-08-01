@@ -34,6 +34,10 @@ log = logging.getLogger(__name__)
 # room to spare for holidays.
 HISTORY_PERIOD = "1y"
 
+# Without this a hung connection stalls the whole run indefinitely, which for a
+# 6am cron job means no brief at all rather than a late one.
+HISTORY_TIMEOUT_SECONDS = 30
+
 # Signals that Yahoo knows nothing about this symbol, as opposed to a transient
 # failure. Matched case-insensitively against the exception text.
 _NOT_FOUND_MARKERS = (
@@ -214,7 +218,9 @@ def _make_ticker(symbol: str, session: Any):
 
 
 def _fetch_history(ticker: Any, symbol: str):
-    frame = ticker.history(period=HISTORY_PERIOD, auto_adjust=False)
+    frame = ticker.history(
+        period=HISTORY_PERIOD, auto_adjust=False, timeout=HISTORY_TIMEOUT_SECONDS
+    )
     if frame is None or frame.empty:
         raise TickerNotFound(symbol, "yfinance returned an empty frame")
     return frame

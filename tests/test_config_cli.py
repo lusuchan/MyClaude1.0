@@ -225,3 +225,34 @@ def test_parser_defaults_are_off():
     assert not args.dry_run
     assert not args.strict
     assert args.verbose == 0
+
+
+def test_a_totally_failed_run_exits_one(monkeypatch, tmp_path, capsys):
+    class DeadTicker:
+        def history(self, **kwargs):
+            raise Exception("No data found")
+
+        def get_info(self):
+            return {}
+
+        @property
+        def fast_info(self):
+            return {}
+
+    monkeypatch.setattr("briefbot.market_data._make_ticker", lambda s, sess: DeadTicker())
+    monkeypatch.setenv("BRIEF_OUTPUT_DIR", str(tmp_path / "out"))
+
+    assert main(["--tickers", "AAA", "--skip-research"]) == 1
+    assert "nothing useful" in capsys.readouterr().err
+
+
+def test_an_unwritable_output_prints_the_brief_and_exits_one(cli_env, monkeypatch, tmp_path, capsys):
+    blocked = tmp_path / "blocked"
+    blocked.write_text("a file, not a directory")
+    monkeypatch.setenv("BRIEF_OUTPUT_DIR", str(blocked / "out"))
+
+    assert main(["--tickers", "AAA"]) == 1
+
+    captured = capsys.readouterr()
+    assert "# Daily brief" in captured.out, "a brief that cost API calls must not vanish"
+    assert "could not write" in captured.err

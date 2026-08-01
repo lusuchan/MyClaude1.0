@@ -29,10 +29,21 @@ class BriefResult:
     path: Path | None = None
     degradations: list[str] = field(default_factory=list)
     synthesized: bool = True
+    write_error: str | None = None
 
     @property
     def degraded(self) -> bool:
         return bool(self.degradations)
+
+    @property
+    def usable(self) -> bool:
+        """Whether this run produced anything worth reading.
+
+        A brief with no prices and no research is a failed run, not a quiet
+        one — the distinction is what makes a cron alert meaningful.
+        """
+
+        return bool(self.snapshot.ok_snapshots) or self.research.ok
 
     def summary(self) -> str:
         got = len(self.snapshot.ok_snapshots)
@@ -123,6 +134,14 @@ def run_brief(
     )
 
     if write:
-        result.path = write_brief(text, settings.output_dir, snapshot)
+        try:
+            result.path = write_brief(text, settings.output_dir, snapshot)
+        except OSError as exc:
+            # Losing a brief that took a dozen web searches to produce because
+            # a directory is read-only would be the worst possible ending.
+            # Record it; the CLI prints the text to stdout instead.
+            log.error("could not write the brief to %s: %s", settings.output_dir, exc)
+            result.write_error = f"could not write to {settings.output_dir}: {exc}"
+            result.degradations.append(result.write_error)
 
     return result

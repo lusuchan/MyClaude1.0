@@ -18,6 +18,10 @@ log = logging.getLogger(__name__)
 
 WEB_SEARCH_TOOL_TYPE = "web_search_20250305"
 
+# Generous, because a research call runs several web searches server-side
+# before it returns, but bounded so a stalled request cannot hang the run.
+REQUEST_TIMEOUT_SECONDS = 300.0
+
 # Retried: the API is momentarily unhappy. Not retried: our request is wrong,
 # or the key is bad — those fail the same way every time.
 _RETRYABLE_STATUS = {408, 409, 429, 500, 502, 503, 504, 529}
@@ -132,7 +136,15 @@ class ClaudeClient:
                 )
             import anthropic
 
-            self._client = anthropic.Anthropic(api_key=settings.api_key)
+            # max_retries=0 matters: the SDK retries twice by default, and
+            # stacked with retry_call's three attempts a rate-limited call
+            # would fire up to nine requests with no backoff coordination.
+            # One retry policy, ours.
+            self._client = anthropic.Anthropic(
+                api_key=settings.api_key,
+                max_retries=0,
+                timeout=REQUEST_TIMEOUT_SECONDS,
+            )
 
     def complete(
         self,
