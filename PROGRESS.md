@@ -44,7 +44,7 @@ bad ticker, unknown/delisted symbols, rate limits, network failures, either
 research call failing, synthesis failing, no API key, an unwritable output
 directory, market closed, stale data, partial sessions.
 
-Two failure modes found and fixed while testing:
+Three real bugs found and fixed while testing:
 
 1. **A 100x dividend-yield bug.** yfinance has shipped `dividendYield` as a
    fraction in older versions and a percentage in current ones; my scale
@@ -54,10 +54,16 @@ Two failure modes found and fixed while testing:
 2. **Retry stacking.** The Anthropic SDK retries twice by default; stacked with
    ours, a rate-limited call would have fired up to nine requests. Set
    `max_retries=0` so there is one retry policy.
+3. **Unknown tickers retried three times.** An unknown symbol makes yfinance
+   return an empty frame rather than raise, so the resulting error carried none
+   of the text markers the not-found check matched on. Every typo cost 4.5s of
+   backoff. Found by running the CLI against a bogus symbol, not by a test — the
+   existing test passed throughout because it raised an exception whose text
+   happened to match.
 
 ### Tests
 
-209 offline tests (no network) plus 11 opt-in live tests (`pytest -m live`,
+211 offline tests (no network) plus 11 opt-in live tests (`pytest -m live`,
 all passing). The two properties that get explicit coverage: one failing ticker
 or step never prevents a brief, and the numbers in the table come from the
 snapshot even when the model states a different figure in its prose.
@@ -106,5 +112,6 @@ Reasonable next moves, roughly in order of value:
 I finished the assigned scope with time to spare and did not invent work to fill
 it. What I spent the remaining time on: a third live run to confirm the
 hardening changes held, tightening the sources list from 104 unfiltered search
-results down to 25 actually-cited ones, and the Phase 2 writeup. No Phase 2 code
+results down to 25 actually-cited ones, a real-world degradation check against a
+bogus ticker (which found bug 3 above), and the Phase 2 writeup. No Phase 2 code
 was written.

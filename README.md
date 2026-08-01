@@ -94,7 +94,7 @@ missing:
 ## Tests
 
 ```bash
-pytest              # 209 tests, no network
+pytest              # 211 tests, no network
 pytest -m live      # 11 more that hit Yahoo and the Claude API for real
 ```
 
