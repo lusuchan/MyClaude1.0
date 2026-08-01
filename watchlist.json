@@ -1,15 +1,13 @@
 {
-  "name": "Phase 1 starter watchlist",
-  "notes": "Liquid, well-known names. Broad-market ETFs for the tape, mega-cap tech for the concentration risk that actually drives the index, one bank for rates/credit, one energy ETF because that is where geopolitics shows up in the price first. Edit freely.",
-  "tickers": [
-    { "symbol": "SPY",   "label": "S&P 500 ETF",        "why": "the tape" },
-    { "symbol": "QQQ",   "label": "Nasdaq 100 ETF",     "why": "growth/tech beta" },
-    { "symbol": "AAPL",  "label": "Apple",              "why": "mega-cap consumer tech" },
-    { "symbol": "MSFT",  "label": "Microsoft",          "why": "mega-cap enterprise/AI" },
-    { "symbol": "NVDA",  "label": "NVIDIA",             "why": "AI capex bellwether" },
-    { "symbol": "AMZN",  "label": "Amazon",             "why": "consumer + cloud" },
-    { "symbol": "GOOGL", "label": "Alphabet",           "why": "ads + cloud + AI" },
-    { "symbol": "JPM",   "label": "JPMorgan Chase",     "why": "rates, credit, macro read" },
-    { "symbol": "XLE",   "label": "Energy Select ETF",  "why": "geopolitics prices in here first" }
-  ]
+“name”: “Phase 1 watchlist”,
+“notes”: “Real tickers, mega-cap names off the personal watchlist screenshot. Indices, commodities, and crypto held back for now, pending a separate market-analyst path.”,
+“tickers”: [
+{ “symbol”: “GOOG”,  “label”: “Alphabet (Class C)” },
+{ “symbol”: “META”,  “label”: “Meta Platforms” },
+{ “symbol”: “AAPL”,  “label”: “Apple” },
+{ “symbol”: “TSLA”,  “label”: “Tesla” },
+{ “symbol”: “NVDA”,  “label”: “NVIDIA” },
+{ “symbol”: “MSFT”,  “label”: “Microsoft” },
+{ “symbol”: “AMZN”,  “label”: “Amazon” }
+]
 }
