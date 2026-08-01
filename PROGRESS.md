@@ -1,10 +1,44 @@
 # Progress
 
-_Last updated: 2026-08-01, overnight session._
+_Last updated: 2026-08-01, watchlist fix session._
 
 **Phase 1 is done and working.** The pipeline produces a real daily brief end to
-end for the nine-ticker watchlist. Error handling and tests are in. Phase 2
+end for the seven-ticker watchlist. Error handling and tests are in. Phase 2
 research is written up with no Phase 2 code, as asked.
+
+---
+
+## Fixed
+
+### `watchlist.json` was invalid JSON on `main` (2026-08-01)
+
+**What broke.** Phase 1 was down end to end on `main` (`e338486`). Both
+`python -m briefbot` and `pytest` failed at the first step, before any market
+data was fetched.
+
+**Root cause.** The watchlist was pasted in with typographic quotes — curly `“`
+`”` (U+201C/U+201D) instead of ASCII `"`. JSON only accepts ASCII double quotes,
+so `json.load()` never got past line 2:
+
+```
+json.decoder.JSONDecodeError: Expecting property name enclosed in
+double quotes: line 2 column 1 (char 2)
+```
+
+`load_watchlist()` in `config.py` turned that into a `ConfigError` and the run
+stopped there. The failure was in the data file, not the code — nothing in
+`briefbot/` was at fault and nothing in `briefbot/` changed.
+
+**What changed.** `watchlist.json` rewritten with straight ASCII quotes, and the
+seven real tickers kept: GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN. Indices,
+commodities and crypto stay held back for the separate market-analyst path.
+`CLAUDE.md` was documenting the old nine-ticker placeholder list; it now matches
+the file.
+
+**Verified.** `json.load()` parses clean, and
+`python -m briefbot --dry-run --skip-research` renders a full 7/7 table.
+`pytest` is 210 passed / 1 failed — see "Needs you" below; the failure is a
+stale assertion, not this fix.
 
 ---
 
@@ -82,7 +116,11 @@ Detail in `NOTES_FOR_PAYITO.md`. The short version:
 
 1. **Put your own `ANTHROPIC_API_KEY` in `.env`** — required. Without it you get
    a numbers-only brief, not a crash.
-2. **Edit `watchlist.json`** — the nine tickers are my guess, not your positions.
+2. **One failing test, left failing on purpose.**
+   `tests/test_config_cli.py::test_the_shipped_watchlist_is_valid` asserts
+   `"SPY" in wl.symbols`, hardcoded against the old placeholder list. SPY is not
+   in the real watchlist by design. Fixing it means editing a test to match a
+   changed expectation, which is your call, not a thing to slip into a fix PR.
 3. **Decide on scheduling** — a working cron line is in the README; I did not
    install it.
 4. Optional: try `BRIEF_MODEL=claude-opus-5` for the synthesis step and see if

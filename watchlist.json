@@ -1,13 +1,13 @@
 {
-“name”: “Phase 1 watchlist”,
-“notes”: “Real tickers, mega-cap names off the personal watchlist screenshot. Indices, commodities, and crypto held back for now, pending a separate market-analyst path.”,
-“tickers”: [
-{ “symbol”: “GOOG”,  “label”: “Alphabet (Class C)” },
-{ “symbol”: “META”,  “label”: “Meta Platforms” },
-{ “symbol”: “AAPL”,  “label”: “Apple” },
-{ “symbol”: “TSLA”,  “label”: “Tesla” },
-{ “symbol”: “NVDA”,  “label”: “NVIDIA” },
-{ “symbol”: “MSFT”,  “label”: “Microsoft” },
-{ “symbol”: “AMZN”,  “label”: “Amazon” }
-]
+  "name": "Phase 1 watchlist",
+  "notes": "Real tickers, mega-cap names off the personal watchlist. Indices, commodities, and crypto held back for now -- separate market-analyst path, tracked on a different branch, not merged into Phase 1.",
+  "tickers": [
+    { "symbol": "GOOG",  "label": "Alphabet (Class C)", "why": "own it" },
+    { "symbol": "META",  "label": "Meta Platforms",     "why": "Magnificent 7, tracking -- AI/tech boom bellwether" },
+    { "symbol": "AAPL",  "label": "Apple",              "why": "Magnificent 7, tracking -- AI/tech boom bellwether" },
+    { "symbol": "TSLA",  "label": "Tesla",              "why": "Magnificent 7, tracking -- AI/tech boom bellwether" },
+    { "symbol": "NVDA",  "label": "NVIDIA",             "why": "Magnificent 7, tracking -- AI/tech boom bellwether" },
+    { "symbol": "MSFT",  "label": "Microsoft",          "why": "Magnificent 7, tracking -- AI/tech boom bellwether" },
+    { "symbol": "AMZN",  "label": "Amazon",             "why": "Magnificent 7, tracking -- AI/tech boom bellwether" }
+  ]
 }

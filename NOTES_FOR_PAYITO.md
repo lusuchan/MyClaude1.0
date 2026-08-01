@@ -34,20 +34,52 @@ it is the judgement step, and it is one call per day. Try
 noticeably sharper. I did not benchmark this; I had no basis to spend your money
 comparing.
 
-## 3. The watchlist is my guess, not your portfolio
+## 3. The watchlist — resolved, your real names are in
 
-You said 5–10 liquid names were fine if none were defined, so I picked nine:
+**Status: fixed, ready to merge.** My nine-ticker guess is gone. `watchlist.json`
+now holds your seven:
 
-> SPY, QQQ, AAPL, MSFT, NVDA, AMZN, GOOGL, JPM, XLE
+> GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN
 
-The logic: two broad-market ETFs for the tape, four mega-cap tech names because
-that is what actually moves the index, one bank as a rates/credit read, and one
-energy ETF because geopolitics shows up there first.
+Indices, commodities and crypto are deliberately held back — that is the separate
+market-analyst path on its own branch, not merged into Phase 1.
 
-**This is almost certainly not what you actually hold or watch.** Edit
-`watchlist.json`. The `why` field on each entry feeds the research prompt, so it
-is worth filling in honestly — "I own this" and "I am thinking about shorting
-this" produce different research.
+### What was broken, and what I fixed
+
+Your edit landed on `main` as `e338486` with typographic quotes — curly `“` `”`
+instead of ASCII `"`. Almost certainly a paste from somewhere that autocorrects
+quotes. JSON does not accept them, so `load_watchlist()` raised `ConfigError`
+before a single price was fetched, and Phase 1 was down end to end: both
+`python -m briefbot` and `pytest` failed at that first step.
+
+Nothing in `briefbot/` was wrong and nothing in `briefbot/` changed. The fix is
+the same seven tickers, retyped with straight quotes, plus the `why` field filled
+in on each — that field feeds the research prompt, so it is worth keeping honest.
+`CLAUDE.md` was still describing the old placeholder list and now matches.
+
+**Worth knowing for next time:** if you edit `watchlist.json` in an editor that
+autocorrects quotes, this will happen again and the failure will look like a
+crash rather than a typo. Quick check before a run:
+
+```bash
+python3 -c "import json; json.load(open('watchlist.json')); print('valid json')"
+```
+
+### One test is failing, and I left it that way
+
+`tests/test_config_cli.py::test_the_shipped_watchlist_is_valid` asserts
+`"SPY" in wl.symbols` — hardcoded against my old placeholder list. SPY is not in
+your watchlist and is not supposed to be, so the test fails: **210 passed, 1
+failed.**
+
+I did not touch it. Editing the test that is failing would have made the PR
+green without telling you anything, and the assertion is really a question for
+you: should that test check the shipped file loads and is a sane size, or should
+it pin specific symbols? If it is the former, dropping the `SPY` line is the fix.
+Your call — say which and I will do it in a follow-up.
+
+The other two checks are clean: `json.load()` parses, and
+`python -m briefbot --dry-run --skip-research` renders a full 7/7 table.
 
 ## 4. Delivery is still just a file
 

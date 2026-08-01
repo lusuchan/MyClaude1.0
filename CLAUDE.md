@@ -38,8 +38,8 @@ market_data  ->  research  ->  synthesis  ->  render
   mechanically.
 - `briefbot/pipeline.py`, `briefbot/cli.py` — orchestration and `python -m briefbot`.
 
-Watchlist lives in `watchlist.json` (9 tickers: SPY, QQQ, AAPL, MSFT, NVDA,
-AMZN, GOOGL, JPM, XLE). Output goes to `briefs/`.
+Watchlist lives in `watchlist.json` (7 tickers: GOOG, META, AAPL, TSLA, NVDA,
+MSFT, AMZN). Output goes to `briefs/`.
 
 ## Standing rules for this project
 
