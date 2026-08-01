@@ -42,20 +42,28 @@ it is the judgement step, and it is one call per day. Try
 noticeably sharper. I did not benchmark this; I had no basis to spend your money
 comparing.
 
-## 3. The watchlist is my guess, not your portfolio
+## 3. The watchlist is yours now — settled, but the `why` fields are still mine
 
-You said 5–10 liquid names were fine if none were defined, so I picked nine:
+**Status: resolved. Noted here because it was open for a while.**
 
-> SPY, QQQ, AAPL, MSFT, NVDA, AMZN, GOOGL, JPM, XLE
+`watchlist.json` holds the nine names you specified:
 
-The logic: two broad-market ETFs for the tape, four mega-cap tech names because
-that is what actually moves the index, one bank as a rates/credit read, and one
-energy ETF because geopolitics shows up there first.
+> SPY, QQQ, GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN
 
-**This is almost certainly not what you actually hold or watch.** Edit
-`watchlist.json`. The `why` field on each entry feeds the research prompt, so it
-is worth filling in honestly — "I own this" and "I am thinking about shorting
-this" produce different research.
+I originally picked a different nine as a placeholder — the same two benchmarks,
+but with JPM as a rates/credit read and XLE as a geopolitics read in place of
+META and TSLA. That guess is gone; the list above is what runs.
+
+Two things worth knowing about it:
+
+- **SPY and QQQ are not editable in the way the other seven are.** Phase 1
+  requires both benchmarks and `tests/test_config_cli.py` asserts they are
+  present. Drop one and the suite fails, deliberately.
+- **The `why` field on each entry is still my wording, not yours.** It feeds
+  the research prompt, so it is worth filling in honestly — "I own this" and
+  "I am thinking about shorting this" produce different research. Mine say what
+  each name is for structurally, which is the best I can do without knowing
+  your positions.
 
 ## 4. Delivery is still just a file
 
@@ -98,48 +106,39 @@ On a normal network you need none of this and the variable should stay unset.
 Mentioning it only so the `YF_IMPERSONATE` line in `.env.example` does not look
 mysterious.
 
-## 8. The new CLAUDE.md describes a watchlist and a test this repo does not have
+## 8. The watchlist fix had not actually landed here — now it has
 
-**Status: unresolved on purpose. Yours to settle.**
+**Status: resolved. Worth reading once, because of how it was found.**
 
-The CLAUDE.md you handed me was to be used verbatim, so it is in verbatim. But
-three of its factual claims do not match what is actually in the repo, and every
-way of fixing that means editing code or `watchlist.json`, which this session
-was told not to touch. So it is here rather than guessed at.
+The new CLAUDE.md described a watchlist this repo did not have. It said the
+nine names were SPY, QQQ, GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN, and that a
+test asserted both benchmarks were present. What was actually on this branch
+was my original placeholder list — SPY, QQQ, AAPL, MSFT, NVDA, AMZN, GOOGL,
+JPM, XLE — and a test that checked only for SPY. You confirmed CLAUDE.md's list
+is the correct one, so the repo has been brought to match it:
 
-**The tickers do not match.** CLAUDE.md now says:
+- `watchlist.json` now holds the nine names above, in that order, with SPY and
+  QQQ labelled as benchmarks.
+- `tests/test_config_cli.py` now asserts both benchmarks are present, in its
+  own test, with the reason in a comment. Dropping either fails the suite.
+- `README.md` and item 3 above describe the real list instead of the old one.
 
-> two benchmarks, SPY and QQQ, then GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN
+**The part worth keeping in mind.** The fix was already made somewhere — your
+instructions referred to it as done, and CLAUDE.md was written as though it
+had landed. It had not landed on `claude/new-session-wxejp7`, and there is no
+watchlist commit anywhere in this branch's history; the last ten commits are
+the Phase 1 build. So a change you had good reason to think was applied was
+live in the docs and absent from the code, and nothing would have caught that
+except reading the JSON. Two loose ends follow from it:
 
-`watchlist.json` on this branch holds:
+1. **If the fix exists on another branch or in another session, it will now
+   conflict with this one.** Two different edits to the same nine lines. Worth
+   checking before merging anything watchlist-shaped.
+2. **The benchmark assertion is the durable half of this.** The ticker list can
+   drift again; a test cannot drift silently. That is why it went in as its own
+   test rather than one more line in the existing one.
 
-> SPY, QQQ, AAPL, MSFT, NVDA, AMZN, GOOGL, JPM, XLE
-
-Both are nine names and both lead with SPY and QQQ. Beyond that they differ:
-CLAUDE.md adds META and TSLA and uses `GOOG`; the repo has `GOOGL` plus JPM
-(the rates/credit read) and XLE (the geopolitics read) instead. The repo's
-`README.md` and item 3 above both describe the second list, so it is not a
-one-line fix — three files and the JSON all have to agree.
-
-**The benchmark test does not exist.** CLAUDE.md says "a test asserts both are
-present". `tests/test_config_cli.py:27` asserts the shipped watchlist is 5–10
-names and that `SPY` is among them. Nothing asserts `QQQ`. If both benchmarks
-are a hard Phase 1 requirement — and the new file says they are, not optional
-and not interchangeable — that assertion needs to be written; right now
-dropping QQQ would pass the suite.
-
-**The change log it refers to is not in this repo.** Your instructions asked me
-to log this "the same way the watchlist fix was". There is no watchlist-fix
-entry in `PROGRESS.md` and no such commit in the history — the last ten commits
-are the Phase 1 build. Taken together with the ticker mismatch, my read is that
-the CLAUDE.md text was written against a version of this project where the
-watchlist had already been changed to the GOOG/META/TSLA list, and that change
-has not landed on `claude/new-session-wxejp7`. Worth checking whether it exists
-somewhere I cannot see before anyone reconciles by hand.
-
-**What I would do, if you want a recommendation.** Decide which nine names you
-actually want first — that is question 3 in this file and it was always yours.
-Then one short session: update `watchlist.json`, make CLAUDE.md's line, the
-README's watchlist section, and item 3 above agree with it, and add the QQQ
-assertion next to the SPY one. Until then, CLAUDE.md's ticker list is aspiration
-and `watchlist.json` is what actually runs.
+Two unit tests in `tests/test_market_data.py` still use JPM and XLE as sample
+symbols, and one live test fetches JPM. Those are exercising the fetch path
+against a specific payload shape, not the shipped watchlist, so I left them
+alone — they would still be valid tests if the watchlist changed again.

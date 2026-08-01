@@ -1,15 +1,15 @@
 {
   "name": "Phase 1 starter watchlist",
-  "notes": "Liquid, well-known names. Broad-market ETFs for the tape, mega-cap tech for the concentration risk that actually drives the index, one bank for rates/credit, one energy ETF because that is where geopolitics shows up in the price first. Edit freely.",
+  "notes": "Two benchmarks first — SPY for the broad market, QQQ for tech/growth — so a move on a single name can be read against the tape rather than in isolation. Both are required by Phase 1 and a test asserts they are present. The seven names after them are liquid mega-cap tech, which is also where the index concentration actually sits. Edit the names freely; leave SPY and QQQ alone.",
   "tickers": [
-    { "symbol": "SPY",   "label": "S&P 500 ETF",        "why": "the tape" },
-    { "symbol": "QQQ",   "label": "Nasdaq 100 ETF",     "why": "growth/tech beta" },
-    { "symbol": "AAPL",  "label": "Apple",              "why": "mega-cap consumer tech" },
-    { "symbol": "MSFT",  "label": "Microsoft",          "why": "mega-cap enterprise/AI" },
-    { "symbol": "NVDA",  "label": "NVIDIA",             "why": "AI capex bellwether" },
-    { "symbol": "AMZN",  "label": "Amazon",             "why": "consumer + cloud" },
-    { "symbol": "GOOGL", "label": "Alphabet",           "why": "ads + cloud + AI" },
-    { "symbol": "JPM",   "label": "JPMorgan Chase",     "why": "rates, credit, macro read" },
-    { "symbol": "XLE",   "label": "Energy Select ETF",  "why": "geopolitics prices in here first" }
+    { "symbol": "SPY",  "label": "S&P 500 ETF",    "why": "benchmark: the broad tape" },
+    { "symbol": "QQQ",  "label": "Nasdaq 100 ETF", "why": "benchmark: tech/growth beta" },
+    { "symbol": "GOOG", "label": "Alphabet",       "why": "ads + cloud + AI" },
+    { "symbol": "META", "label": "Meta Platforms", "why": "ads, and AI capex on the cost side" },
+    { "symbol": "AAPL", "label": "Apple",          "why": "mega-cap consumer tech" },
+    { "symbol": "TSLA", "label": "Tesla",          "why": "high-beta, narrative-driven" },
+    { "symbol": "NVDA", "label": "NVIDIA",         "why": "AI capex bellwether" },
+    { "symbol": "MSFT", "label": "Microsoft",      "why": "mega-cap enterprise/AI" },
+    { "symbol": "AMZN", "label": "Amazon",         "why": "consumer + cloud" }
   ]
 }

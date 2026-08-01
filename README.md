@@ -49,16 +49,22 @@ three Claude calls (two research, one synthesis) plus 12 web searches.
 
 ## The watchlist
 
-`watchlist.json` at the repo root. Nine liquid names to start — broad-market
-ETFs, mega-cap tech, one bank, one energy ETF:
+`watchlist.json` at the repo root. Nine liquid names: two benchmarks, SPY and
+QQQ, then GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN.
 
 ```json
-{ "symbol": "SPY", "label": "S&P 500 ETF", "why": "the tape" }
+{ "symbol": "SPY", "label": "S&P 500 ETF", "why": "benchmark: the broad tape" }
 ```
 
 `label` and `why` are both optional but both earn their keep: they end up in the
 research prompt, so telling the model *why* a ticker is on the list shapes what
 it looks for. A bare `"SPY"` string works too.
+
+**Both benchmarks are required, and a test enforces it.** SPY covers the broad
+market and QQQ covers tech/growth, so a move on a single name can be read
+against the tape instead of in isolation — with a watchlist this tech-heavy,
+SPY alone would hide how much of a move was just beta. The other seven names
+are yours to change.
 
 ## How it fits together
 

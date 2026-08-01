@@ -106,11 +106,37 @@ need it — the docs said "worth a read" about the part that is actually the job
 (`git diff --stat` shows five markdown files and nothing else). `pytest` still
 reports 211 passing offline tests, unchanged, since nothing it covers moved.
 
-**One conflict, not resolved here.** The new `CLAUDE.md` describes a watchlist
-this repo does not have, and a benchmark test that does not exist. Written up
-as item 8 in `NOTES_FOR_PAYITO.md` rather than guessed at, since resolving it
-either way means editing `watchlist.json` or the test suite — both out of scope
-for a docs-only session, and both your call.
+**One conflict, raised rather than guessed at.** The new `CLAUDE.md` described
+a watchlist this repo did not have, and a benchmark test that did not exist.
+Both were written up as item 8 in `NOTES_FOR_PAYITO.md` and resolved in the
+next entry.
+
+### The watchlist now matches CLAUDE.md, and a test holds it there
+
+**What changed.** `watchlist.json` holds SPY, QQQ, GOOG, META, AAPL, TSLA,
+NVDA, MSFT, AMZN — the list CLAUDE.md describes, confirmed correct. It had been
+carrying my original placeholder nine (GOOGL, JPM and XLE where META, TSLA and
+GOOG should have been). `tests/test_config_cli.py` gained
+`test_the_shipped_watchlist_carries_both_benchmarks`, asserting SPY and QQQ are
+both present, which is the claim CLAUDE.md was already making. `README.md` and
+`NOTES_FOR_PAYITO.md` items 3 and 8 now describe the real list.
+
+**Why.** CLAUDE.md is meant to be current truth about this repo, and on the
+watchlist it was describing a repo that did not exist here — the fix was
+believed done, was live in the docs, and had never landed in the code. Nothing
+would have surfaced that except reading the JSON by hand. The benchmark test is
+the half of this that lasts: the ticker list can drift again, a failing test
+cannot drift quietly.
+
+**Verified.** `pytest` reports 212 passing offline tests, up one from the new
+benchmark test; `python -m briefbot --skip-research --dry-run` renders a brief
+over the new nine names, 9 of 9 fetched, so GOOG, META and TSLA all resolve at
+Yahoo (that path still hits yfinance — it is the Claude calls it skips). The
+benchmark assertion
+was confirmed to actually bite by removing QQQ from the watchlist and watching
+it fail, then restoring it. The two `market_data` unit tests and one live test
+that use JPM and XLE were left alone — they exercise fetch behaviour against
+particular payload shapes, not the shipped watchlist.
 
 ---
 
@@ -120,7 +146,9 @@ Detail in `NOTES_FOR_PAYITO.md`. The short version:
 
 1. **Put your own `ANTHROPIC_API_KEY` in `.env`** — required. Without it you get
    a numbers-only brief, not a crash.
-2. **Edit `watchlist.json`** — the nine tickers are my guess, not your positions.
+2. ~~**Edit `watchlist.json`**~~ — done. The nine names are the ones you
+   specified. The `why` fields are still my wording and feed the research
+   prompt, so they are worth a pass if you want different research.
 3. **Decide on scheduling** — a working cron line is in the README; I did not
    install it.
 4. **Decide the synthesis model** — try `BRIEF_MODEL=claude-opus-5` and see if
