@@ -114,7 +114,9 @@ class ResearchBundle:
         return bool(self.errors) and self.ok
 
     @property
-    def citations(self) -> list[Citation]:
+    def all_results(self) -> list[Citation]:
+        """Every URL the searches returned, cited or not."""
+
         out: list[Citation] = []
         seen: set[str] = set()
         for response in (self.movers, self.macro):
@@ -123,6 +125,18 @@ class ResearchBundle:
                     seen.add(cite.url)
                     out.append(cite)
         return out
+
+    @property
+    def citations(self) -> list[Citation]:
+        """Sources actually cited in the research prose.
+
+        Falls back to the full result set only when nothing was cited, so the
+        brief still shows its working rather than an empty Sources section.
+        """
+
+        results = self.all_results
+        cited = [c for c in results if c.cited]
+        return cited or results
 
     @property
     def search_count(self) -> int:

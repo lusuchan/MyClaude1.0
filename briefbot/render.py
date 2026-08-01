@@ -119,8 +119,11 @@ def render_brief(
         f"_{watchlist_name} · {len(snapshot.ok_snapshots)} of {len(snapshot.snapshots)} "
         f"tickers with data · generated {snapshot.generated_at.strftime('%Y-%m-%d %H:%M %Z')}_",
         "",
-        f"**Market status:** {snapshot.status.describe()}",
     ]
+
+    # Blank lines between these, not just newlines — otherwise markdown
+    # collapses them into one run-on paragraph.
+    parts += [f"**Market status:** {snapshot.status.describe()}", ""]
 
     if session:
         parts.append(f"**Data through:** close of {session.isoformat()}")

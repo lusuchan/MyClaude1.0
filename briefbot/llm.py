@@ -27,6 +27,11 @@ _RETRYABLE_STATUS = {408, 409, 429, 500, 502, 503, 504, 529}
 class Citation:
     url: str
     title: str = ""
+    # True when the model actually cited this in its prose. False means the
+    # search merely returned it. Search results outnumber real citations by
+    # roughly five to one and include plenty of junk, so the two are kept
+    # apart and only the cited ones are shown to the reader.
+    cited: bool = False
 
     def as_markdown(self) -> str:
         return f"[{self.title or self.url}]({self.url})"
@@ -43,6 +48,10 @@ class LLMResponse:
 
     def __bool__(self) -> bool:
         return bool(self.text.strip())
+
+    @property
+    def cited_sources(self) -> list[Citation]:
+        return [c for c in self.citations if c.cited]
 
 
 def _is_retryable(exc: BaseException) -> bool:
@@ -62,9 +71,20 @@ def _extract(message: Any) -> LLMResponse:
     """Flatten a Messages response into text plus deduplicated citations."""
 
     chunks: list[str] = []
-    citations: list[Citation] = []
-    seen: set[str] = set()
+    by_url: dict[str, Citation] = {}
     searches = 0
+
+    def record(url: str | None, title: str, cited: bool) -> None:
+        if not url:
+            return
+        existing = by_url.get(url)
+        if existing is None:
+            by_url[url] = Citation(url=url, title=title, cited=cited)
+            return
+        # A URL first seen as a search result and later cited is promoted.
+        existing.cited = existing.cited or cited
+        if title and not existing.title:
+            existing.title = title
 
     for block in getattr(message, "content", []) or []:
         btype = getattr(block, "type", None)
@@ -72,21 +92,18 @@ def _extract(message: Any) -> LLMResponse:
         if btype == "text":
             chunks.append(getattr(block, "text", "") or "")
             for cite in getattr(block, "citations", None) or []:
-                url = getattr(cite, "url", None)
-                if url and url not in seen:
-                    seen.add(url)
-                    citations.append(Citation(url=url, title=getattr(cite, "title", "") or ""))
+                record(getattr(cite, "url", None), getattr(cite, "title", "") or "", True)
 
         elif btype == "server_tool_use":
             searches += 1
 
         elif btype == "web_search_tool_result":
-            # Results not cited in the prose still tell us what was consulted.
+            # Kept, but marked uncited: useful for debugging what was consulted,
+            # not for printing in the brief.
             for item in getattr(block, "content", None) or []:
-                url = getattr(item, "url", None)
-                if url and url not in seen:
-                    seen.add(url)
-                    citations.append(Citation(url=url, title=getattr(item, "title", "") or ""))
+                record(getattr(item, "url", None), getattr(item, "title", "") or "", False)
+
+    citations = list(by_url.values())
 
     usage = getattr(message, "usage", None)
 
@@ -157,10 +174,11 @@ class ClaudeClient:
         message = retry_call(lambda: self._client.messages.create(**kwargs), **retry_kwargs)
         response = _extract(message)
         log.info(
-            "%s: %d chars, %d searches, %d citations (in=%d out=%d)",
+            "%s: %d chars, %d searches, %d cited of %d results (in=%d out=%d)",
             label,
             len(response.text),
             response.search_count,
+            len(response.cited_sources),
             len(response.citations),
             response.input_tokens,
             response.output_tokens,

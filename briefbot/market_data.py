@@ -252,6 +252,10 @@ def _fetch_fundamentals(ticker: Any) -> dict[str, Any]:
         "trailingPE",
         "forwardPE",
         "dividendYield",
+        "dividendRate",
+        "trailingAnnualDividendYield",
+        "currentPrice",
+        "regularMarketPrice",
         "quoteType",
         "currency",
     ):
@@ -340,6 +344,37 @@ def compute_metrics(snapshot: TickerSnapshot, frame: Any) -> TickerSnapshot:
     return snapshot
 
 
+def _dividend_yield_pct(info: dict[str, Any]) -> float | None:
+    """Dividend yield as a percentage, derived rather than guessed.
+
+    ``dividendYield`` is a trap: yfinance has shipped it as a fraction
+    (0.0035) in older versions and as a percentage (0.35) in current ones, and
+    a value like 0.35 is genuinely ambiguous between the two. Reading it wrong
+    is a 100x error in a number the reader might act on.
+
+    So it is used last. Two unambiguous sources come first:
+
+    1. ``dividendRate / price`` — an annual dollar amount over a dollar price.
+       No scale ambiguity is possible.
+    2. ``trailingAnnualDividendYield`` — consistently a fraction across
+       versions.
+    """
+
+    rate = _clean(info.get("dividendRate"))
+    price = _clean(info.get("currentPrice") or info.get("regularMarketPrice") or info.get("last_price"))
+    if rate is not None and price:
+        return rate / price * 100.0
+
+    trailing = _clean(info.get("trailingAnnualDividendYield"))
+    if trailing is not None:
+        return trailing * 100.0
+
+    # Last resort, and only reachable when both fields above are absent. Read
+    # as the current yfinance percentage format; an older yfinance would make
+    # this read 100x low, which is the safer direction to be wrong in.
+    return _clean(info.get("dividendYield"))
+
+
 def _apply_fundamentals(snapshot: TickerSnapshot, info: dict[str, Any]) -> None:
     snapshot.name = info.get("longName") or info.get("shortName") or snapshot.name
     snapshot.currency = info.get("currency") or snapshot.currency
@@ -350,12 +385,7 @@ def _apply_fundamentals(snapshot: TickerSnapshot, info: dict[str, Any]) -> None:
     snapshot.trailing_pe = _clean(info.get("trailingPE"))
     snapshot.forward_pe = _clean(info.get("forwardPE"))
 
-    raw_yield = _clean(info.get("dividendYield"))
-    if raw_yield is not None:
-        # yfinance has shipped this both as a fraction (0.0052) and as a
-        # percentage (0.52) across versions. Anything under 1 is a fraction;
-        # no listed equity yields 100%+.
-        snapshot.dividend_yield_pct = raw_yield * 100.0 if raw_yield < 1 else raw_yield
+    snapshot.dividend_yield_pct = _dividend_yield_pct(info)
 
 
 # --------------------------------------------------------------------------
