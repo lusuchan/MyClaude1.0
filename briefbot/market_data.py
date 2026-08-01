@@ -50,6 +50,15 @@ _NOT_FOUND_MARKERS = (
 
 
 def _is_not_found(exc: BaseException) -> bool:
+    """Whether this failure means 'the symbol is bogus' rather than 'try again'.
+
+    TickerNotFound is checked by type first. Matching it by message text would
+    be fragile, and getting it wrong means retrying a typo three times with
+    backoff on every ticker, every morning.
+    """
+
+    if isinstance(exc, TickerNotFound):
+        return True
     text = str(exc).lower()
     return any(marker in text for marker in _NOT_FOUND_MARKERS)
 

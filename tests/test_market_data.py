@@ -226,6 +226,24 @@ def test_unknown_ticker_is_recorded_not_raised(patch_ticker):
     assert "not found" in (snap.error or "")
 
 
+def test_an_empty_frame_is_not_retried(patch_ticker):
+    # An unknown symbol returns an empty frame rather than raising, so the
+    # TickerNotFound this produces carries none of the text markers. It must
+    # still be recognised as permanent, or every typo costs 4.5s of backoff
+    # on every run.
+    empty = pd.DataFrame({"Close": [], "Volume": [], "High": [], "Low": [], "Open": []})
+    fake = FakeTicker(frame=empty)
+    patch_ticker({"NOPE": fake})
+
+    fetch_ticker(Holding(symbol="NOPE"), attempts=3, sleep=lambda _: None, include_fundamentals=False)
+
+    assert fake.history_calls == 1
+
+
+def test_ticker_not_found_is_recognised_by_type_not_text():
+    assert _is_not_found(TickerNotFound("XYZ", "yfinance returned an empty frame"))
+
+
 def test_a_delisted_symbol_is_not_retried(patch_ticker):
     fake = FakeTicker(exc=Exception("AAA: No data found, symbol may be delisted"))
     patch_ticker({"AAA": fake})
