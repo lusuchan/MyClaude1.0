@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-08-01, overnight session._
+_Last updated: 2026-08-01, docs-only session._
 
 **Phase 1 is done and working.** The pipeline produces a real daily brief end to
 end for the nine-ticker watchlist. Error handling and tests are in. Phase 2
@@ -74,6 +74,44 @@ snapshot even when the model states a different figure in its prose.
 `NOTES_FOR_PAYITO.md` (decisions needing you), `CLAUDE.md` updated to current
 truth, `PHASE2_NOTES.md` (research only).
 
+### The working agreement is now written down as a rule, not a suggestion
+
+**What changed.** `CLAUDE.md` was replaced with a version you supplied
+verbatim. Two things that used to sit in a closing "worth a read for context"
+section are now standing rules: `claude-capabilities-checklist.md` gets read
+before a phase's work starts and what it produced gets logged here, and
+architecture calls, spending, and changes of direction go to
+`NOTES_FOR_PAYITO.md` and stay there for you. The file also now states that
+Phase 1 requires both benchmarks, SPY and QQQ, as a hard requirement rather
+than a watchlist preference.
+
+Then the same pattern got fixed everywhere else it appeared. `README.md` used
+to point at CLAUDE.md as a place to look up the roadmap; it now says those
+rules govern work in this repo and names the two things the README itself does
+not cover. `NOTES_FOR_PAYITO.md` opened by saying nothing in it blocked the
+build, which read as "these were already handled"; it now says plainly that
+this is where your decisions live and that a provisional call is not a decision
+made for you. `PHASE2_NOTES.md` now names the two gates on starting Phase 2 —
+the open questions being yours, and the checklist read — instead of only
+gating on reading the file. In this file, the model choice moved out of
+"Optional:" and into a decision that stays open because it spends money on
+every run, and the next-steps section now carries the checklist step.
+
+**Why.** The project has two goals, and only one of them was written down as
+binding. Framing a capability check or a decision fork as background reading
+means it gets skipped under time pressure by exactly the sessions that most
+need it — the docs said "worth a read" about the part that is actually the job.
+
+**Verified.** Documentation only: no code, tests, or `watchlist.json` touched
+(`git diff --stat` shows five markdown files and nothing else). `pytest` still
+reports 211 passing offline tests, unchanged, since nothing it covers moved.
+
+**One conflict, not resolved here.** The new `CLAUDE.md` describes a watchlist
+this repo does not have, and a benchmark test that does not exist. Written up
+as item 8 in `NOTES_FOR_PAYITO.md` rather than guessed at, since resolving it
+either way means editing `watchlist.json` or the test suite — both out of scope
+for a docs-only session, and both your call.
+
 ---
 
 ## Needs you
@@ -85,9 +123,10 @@ Detail in `NOTES_FOR_PAYITO.md`. The short version:
 2. **Edit `watchlist.json`** — the nine tickers are my guess, not your positions.
 3. **Decide on scheduling** — a working cron line is in the README; I did not
    install it.
-4. Optional: try `BRIEF_MODEL=claude-opus-5` for the synthesis step and see if
-   the writing reads better. I had no basis for spending your money benchmarking
-   this.
+4. **Decide the synthesis model** — try `BRIEF_MODEL=claude-opus-5` and see if
+   the writing reads better. Not an optional extra: it spends your money on
+   every run, so it is your call and it stays open until you make it. I had no
+   basis for benchmarking it for you.
 
 ---
 
@@ -106,6 +145,11 @@ Reasonable next moves, roughly in order of value:
   forces (adjusted closes, survivorship bias), and the honest warning that the
   gap between "indicator computed correctly" and "signal worth acting on" is the
   entire difficulty. Read that file before starting.
+
+Whatever comes next, the first step is the same one CLAUDE.md sets out: read
+`claude-capabilities-checklist.md` before the phase's work starts, use what
+genuinely serves it, and record here what was used and why — or that nothing
+fit. That check is part of the work, not preparation for it.
 
 ## Time left over
 

@@ -4,8 +4,13 @@ Phase 1 of the trading project: an automated daily market brief. Pulls price and
 volume data for a watchlist, researches the news and geopolitical backdrop with
 Claude's web search, and synthesises both into a readable markdown brief.
 
-Information only. No signals, no recommendations, no execution — see
-[CLAUDE.md](CLAUDE.md) for the phase roadmap and the standing rules.
+Information only. No signals, no recommendations, no execution.
+[CLAUDE.md](CLAUDE.md) holds the phase roadmap and the standing rules — those
+rules govern any work in this repo, so read them before changing anything here,
+not after. They also cover two things this README does not: checking
+`claude-capabilities-checklist.md` before a phase's work begins, and which kinds
+of decisions stop and go to Payito in
+[NOTES_FOR_PAYITO.md](NOTES_FOR_PAYITO.md) instead of being made here.
 
 ## Setup
 
