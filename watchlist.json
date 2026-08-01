@@ -1,7 +1,9 @@
 {
   "name": "Phase 1 watchlist",
-  "notes": "Real tickers, mega-cap names off the personal watchlist. Indices, commodities, and crypto held back for now -- separate market-analyst path, tracked on a different branch, not merged into Phase 1.",
+  "notes": "Two broad-market benchmarks plus real tickers, mega-cap names off the personal watchlist. Commodities and crypto held back for now -- separate market-analyst path, tracked on a different branch, not merged into Phase 1.",
   "tickers": [
+    { "symbol": "SPY",   "label": "S&P 500 ETF",         "why": "broad-market benchmark -- is this a market story or a stock-specific one" },
+    { "symbol": "QQQ",   "label": "Nasdaq 100 ETF",      "why": "tech/growth benchmark -- direct comparison point for the AI names" },
     { "symbol": "GOOG",  "label": "Alphabet (Class C)", "why": "own it" },
     { "symbol": "META",  "label": "Meta Platforms",     "why": "Magnificent 7, tracking -- AI/tech boom bellwether" },
     { "symbol": "AAPL",  "label": "Apple",              "why": "Magnificent 7, tracking -- AI/tech boom bellwether" },

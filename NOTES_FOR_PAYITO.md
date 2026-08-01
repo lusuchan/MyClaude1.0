@@ -36,14 +36,17 @@ comparing.
 
 ## 3. The watchlist — resolved, your real names are in
 
-**Status: fixed, ready to merge —
+**Status: fixed, fully green, ready to merge —
 [PR #3](https://github.com/lusuchan/MyClaude1.0/pull/3).** My nine-ticker guess
-is gone. `watchlist.json` now holds your seven:
+is gone. `watchlist.json` now holds your seven names plus the two benchmarks you
+asked for:
 
-> GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN
+> SPY, QQQ, GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN
 
-Indices, commodities and crypto are deliberately held back — that is the separate
-market-analyst path on its own branch, not merged into Phase 1.
+Benchmarks sit at the top of the file, ahead of the seven, because they are
+reference points rather than positions. Commodities and crypto are still
+deliberately held back — that is the separate market-analyst path on its own
+branch, not merged into Phase 1.
 
 ### What was broken, and what I fixed
 
@@ -66,18 +69,33 @@ crash rather than a typo. Quick check before a run:
 python3 -c "import json; json.load(open('watchlist.json')); print('valid json')"
 ```
 
-### One test is failing, and I left it that way
+### The test that was failing is now fixed
 
-`tests/test_config_cli.py::test_the_shipped_watchlist_is_valid` asserts
-`"SPY" in wl.symbols` — hardcoded against my old placeholder list. SPY is not in
-your watchlist and is not supposed to be, so the test fails: **210 passed, 1
-failed.**
+`tests/test_config_cli.py::test_the_shipped_watchlist_is_valid` was asserting
+`"SPY" in wl.symbols`, hardcoded from my old placeholder list. I left it failing
+in the first pass rather than quietly deleting the line, because the real
+question underneath it was yours to answer: does Phase 1 require a benchmark at
+all?
 
-I did not touch it. Editing the test that is failing would have made the PR
-green without telling you anything, and the assertion is really a question for
-you: should that test check the shipped file loads and is a sane size, or should
-it pin specific symbols? If it is the former, dropping the `SPY` line is the fix.
-Your call — say which and I will do it in a follow-up.
+You answered yes, and named two. So the assertion now checks that actual
+requirement and states it in the failure message, rather than comparing against
+one string for reasons a future reader would have to guess at:
+
+```python
+assert {"SPY", "QQQ"}.issubset(set(wl.symbols)), (
+    "Phase 1 requires a broad-market benchmark (SPY) and a "
+    "tech/growth benchmark (QQQ) alongside individual positions"
+)
+```
+
+**211 passed, 0 failed.** PR #3 is fully green — nothing outstanding on it.
+
+The reason two benchmarks and not one: everything else on the list is an
+individual tech name, so the first question about any move is whether it is a
+market story or a stock-specific one. SPY answers that for the broad tape, QQQ
+for tech/growth specifically. A day where QQQ falls and SPY does not is a
+different day from one where both fall, and one benchmark cannot tell those
+apart.
 
 The other two checks are clean: `json.load()` parses, and
 `python -m briefbot --dry-run --skip-research` renders a full 7/7 table.

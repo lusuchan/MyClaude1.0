@@ -3,12 +3,40 @@
 _Last updated: 2026-08-01, watchlist fix session._
 
 **Phase 1 is done and working.** The pipeline produces a real daily brief end to
-end for the seven-ticker watchlist. Error handling and tests are in. Phase 2
+end for the nine-ticker watchlist. Error handling and tests are in. Phase 2
 research is written up with no Phase 2 code, as asked.
 
 ---
 
 ## Fixed
+
+### Benchmarks are now a Phase 1 requirement (2026-08-01)
+
+**What changed.** SPY and QQQ added to `watchlist.json`, at the top and ahead of
+the seven single names, because they are benchmarks rather than positions. Nine
+tickers total, still inside the 5–10 range Phase 1 calls for.
+
+**Why.** The rest of the watchlist is individual tech names, which on their own
+cannot answer the first question worth asking about any move: is this a market
+story or a stock-specific one. SPY gives the broad tape, QQQ the tech/growth
+comparison for the AI names. Neither is redundant with the other — a day where
+QQQ drops and SPY holds says something specific.
+
+**The leftover failing test is closed out.**
+`test_the_shipped_watchlist_is_valid` was asserting `"SPY" in wl.symbols`,
+hardcoded from the old placeholder list. It now asserts both benchmarks are
+present and carries a message saying why, so the requirement is legible rather
+than an unexplained string comparison:
+
+```python
+assert {"SPY", "QQQ"}.issubset(set(wl.symbols)), (
+    "Phase 1 requires a broad-market benchmark (SPY) and a "
+    "tech/growth benchmark (QQQ) alongside individual positions"
+)
+```
+
+**Verified.** `json.load()` parses clean, `pytest` is **211 passed / 0 failed**,
+and `--dry-run --skip-research` renders a full 9/9 table.
 
 ### `watchlist.json` was invalid JSON on `main` (2026-08-01)
 
@@ -37,8 +65,8 @@ the file.
 
 **Verified.** `json.load()` parses clean, and
 `python -m briefbot --dry-run --skip-research` renders a full 7/7 table.
-`pytest` is 210 passed / 1 failed — see "Needs you" below; the failure is a
-stale assertion, not this fix.
+`pytest` was 210 passed / 1 failed at the time — a stale assertion, not this
+fix. Closed out by the benchmark entry above.
 
 ---
 
@@ -116,12 +144,7 @@ Detail in `NOTES_FOR_PAYITO.md`. The short version:
 
 1. **Put your own `ANTHROPIC_API_KEY` in `.env`** — required. Without it you get
    a numbers-only brief, not a crash.
-2. **One failing test, left failing on purpose.**
-   `tests/test_config_cli.py::test_the_shipped_watchlist_is_valid` asserts
-   `"SPY" in wl.symbols`, hardcoded against the old placeholder list. SPY is not
-   in the real watchlist by design. Fixing it means editing a test to match a
-   changed expectation, which is your call, not a thing to slip into a fix PR.
-3. **Decide on scheduling** — a working cron line is in the README; I did not
+2. **Decide on scheduling** — a working cron line is in the README; I did not
    install it.
 4. Optional: try `BRIEF_MODEL=claude-opus-5` for the synthesis step and see if
    the writing reads better. I had no basis for spending your money benchmarking
