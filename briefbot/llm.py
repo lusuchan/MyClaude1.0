@@ -1,0 +1,168 @@
+"""A thin wrapper over the Anthropic Messages API.
+
+Wraps the two things every LLM step here needs and nothing else: retrying the
+failures that are worth retrying, and flattening a response (which may be a
+long chain of search-result and text blocks) into text plus a citation list.
+"""
+
+from __future__ import annotations
+
+import logging
+from dataclasses import dataclass, field
+from typing import Any
+
+from .config import Settings
+from .retry import retry_call
+
+log = logging.getLogger(__name__)
+
+WEB_SEARCH_TOOL_TYPE = "web_search_20250305"
+
+# Retried: the API is momentarily unhappy. Not retried: our request is wrong,
+# or the key is bad — those fail the same way every time.
+_RETRYABLE_STATUS = {408, 409, 429, 500, 502, 503, 504, 529}
+
+
+@dataclass
+class Citation:
+    url: str
+    title: str = ""
+
+    def as_markdown(self) -> str:
+        return f"[{self.title or self.url}]({self.url})"
+
+
+@dataclass
+class LLMResponse:
+    text: str
+    citations: list[Citation] = field(default_factory=list)
+    search_count: int = 0
+    stop_reason: str | None = None
+    input_tokens: int = 0
+    output_tokens: int = 0
+
+    def __bool__(self) -> bool:
+        return bool(self.text.strip())
+
+
+def _is_retryable(exc: BaseException) -> bool:
+    status = getattr(exc, "status_code", None)
+    if isinstance(status, int):
+        return status in _RETRYABLE_STATUS
+
+    name = type(exc).__name__
+    if name in {"APIConnectionError", "APITimeoutError", "InternalServerError", "RateLimitError", "APIStatusError"}:
+        return True
+    # Anthropic's overloaded_error surfaces with varying types across SDK
+    # versions; the string is the reliable tell.
+    return "overloaded" in str(exc).lower()
+
+
+def _extract(message: Any) -> LLMResponse:
+    """Flatten a Messages response into text plus deduplicated citations."""
+
+    chunks: list[str] = []
+    citations: list[Citation] = []
+    seen: set[str] = set()
+    searches = 0
+
+    for block in getattr(message, "content", []) or []:
+        btype = getattr(block, "type", None)
+
+        if btype == "text":
+            chunks.append(getattr(block, "text", "") or "")
+            for cite in getattr(block, "citations", None) or []:
+                url = getattr(cite, "url", None)
+                if url and url not in seen:
+                    seen.add(url)
+                    citations.append(Citation(url=url, title=getattr(cite, "title", "") or ""))
+
+        elif btype == "server_tool_use":
+            searches += 1
+
+        elif btype == "web_search_tool_result":
+            # Results not cited in the prose still tell us what was consulted.
+            for item in getattr(block, "content", None) or []:
+                url = getattr(item, "url", None)
+                if url and url not in seen:
+                    seen.add(url)
+                    citations.append(Citation(url=url, title=getattr(item, "title", "") or ""))
+
+    usage = getattr(message, "usage", None)
+
+    return LLMResponse(
+        text="".join(chunks).strip(),
+        citations=citations,
+        search_count=searches,
+        stop_reason=getattr(message, "stop_reason", None),
+        input_tokens=getattr(usage, "input_tokens", 0) or 0,
+        output_tokens=getattr(usage, "output_tokens", 0) or 0,
+    )
+
+
+class ClaudeClient:
+    """Small facade so the research and synthesis steps stay readable."""
+
+    def __init__(self, settings: Settings, client: Any = None, sleep: Any = None):
+        self.settings = settings
+        self._sleep = sleep
+        if client is not None:
+            self._client = client
+        else:
+            if not settings.has_api_key:
+                raise ValueError(
+                    "no Anthropic API key — set ANTHROPIC_API_KEY in .env (see .env.example)"
+                )
+            import anthropic
+
+            self._client = anthropic.Anthropic(api_key=settings.api_key)
+
+    def complete(
+        self,
+        *,
+        prompt: str,
+        system: str | None = None,
+        max_tokens: int = 2000,
+        web_search: bool = False,
+        max_searches: int | None = None,
+        attempts: int = 3,
+        label: str = "claude call",
+    ) -> LLMResponse:
+        kwargs: dict[str, Any] = {
+            "model": self.settings.model,
+            "max_tokens": max_tokens,
+            "messages": [{"role": "user", "content": prompt}],
+        }
+        if system:
+            kwargs["system"] = system
+        if web_search:
+            kwargs["tools"] = [
+                {
+                    "type": WEB_SEARCH_TOOL_TYPE,
+                    "name": "web_search",
+                    "max_uses": max_searches or self.settings.max_searches,
+                }
+            ]
+
+        retry_kwargs: dict[str, Any] = {
+            "attempts": attempts,
+            "base_delay": 3.0,
+            "max_delay": 45.0,
+            "should_retry": _is_retryable,
+            "label": label,
+        }
+        if self._sleep is not None:
+            retry_kwargs["sleep"] = self._sleep
+
+        message = retry_call(lambda: self._client.messages.create(**kwargs), **retry_kwargs)
+        response = _extract(message)
+        log.info(
+            "%s: %d chars, %d searches, %d citations (in=%d out=%d)",
+            label,
+            len(response.text),
+            response.search_count,
+            len(response.citations),
+            response.input_tokens,
+            response.output_tokens,
+        )
+        return response
