@@ -67,8 +67,8 @@ class Settings:
         return bool(self.api_key)
 
 
-def _int_env(name: str, default: int) -> int:
-    raw = os.environ.get(name)
+def _int_env(env: dict[str, str], name: str, default: int) -> int:
+    raw = env.get(name)
     if not raw:
         return default
     try:
@@ -101,7 +101,7 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
     return Settings(
         api_key=api_key,
         model=env.get("BRIEF_MODEL") or DEFAULT_MODEL,
-        max_searches=_int_env("BRIEF_MAX_SEARCHES", 6),
+        max_searches=_int_env(env, "BRIEF_MAX_SEARCHES", 6),
         output_dir=output_dir,
         yf_impersonate=env.get("YF_IMPERSONATE") or None,
         proxy=proxy,
