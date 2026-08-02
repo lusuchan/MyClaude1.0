@@ -30,6 +30,15 @@ Without it, `python -m briefbot` still runs — it degrades to a numbers-only
 brief and tells you why. So you will not get a crash, you will get a brief with
 no news in it. `.env` is gitignored.
 
+**One naming trap, which already cost a session.** The remote environment
+supplies its key as `API_KEY`, not `ANTHROPIC_API_KEY`. `config.py:91` reads
+`ANTHROPIC_API_KEY` first and falls back to `API_KEY`, so briefbot works either
+way and always has. But anything that checks for the documented name alone —
+including me, in the session that added JPM and XLE — will conclude there is no
+key when there is one, and quietly skip the live verification that matters.
+`.env.example` documents the canonical name only, which is right for your
+machine; the alias is worth knowing about for anywhere else this runs.
+
 ## 2. Model choice — I picked Sonnet, you may want to revisit
 
 I defaulted to `claude-sonnet-5` for all three calls. Reasoning: the research
