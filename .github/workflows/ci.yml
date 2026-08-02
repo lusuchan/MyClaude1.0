@@ -6,8 +6,12 @@ name: tests
 # (pytest.ini), so nothing here touches Yahoo or the Claude API.
 
 on:
+  # `push` is deliberately limited to main. With `branches: ["**"]` every
+  # pull-request commit matched both triggers and ran the whole matrix twice --
+  # four jobs per push instead of two. Branch work is covered by `pull_request`;
+  # this trigger exists so main itself is still checked after a merge.
   push:
-    branches: ["**"]
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
