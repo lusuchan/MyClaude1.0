@@ -38,8 +38,14 @@ market_data  ->  research  ->  synthesis  ->  render
   mechanically.
 - `briefbot/pipeline.py`, `briefbot/cli.py` — orchestration and `python -m briefbot`.
 
-Watchlist lives in `watchlist.json` (9 tickers: SPY, QQQ, AAPL, MSFT, NVDA,
-AMZN, GOOGL, JPM, XLE). Output goes to `briefs/`.
+Watchlist lives in `watchlist.json` (11 tickers: two benchmarks, SPY and QQQ,
+then GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN, then JPM for rates/credit and
+XLE for geopolitics). Output goes to `briefs/`.
+
+**Phase 1 requires both benchmarks.** SPY for the broad market and QQQ for
+tech/growth, so a move on a single name can be read against the tape rather than
+in isolation. A test asserts both are present; they are not optional and not
+interchangeable.
 
 ## Standing rules for this project
 
@@ -51,6 +57,12 @@ AMZN, GOOGL, JPM, XLE). Output goes to `briefs/`.
 - Get one ugly end-to-end run working before polishing anything
 - Keep this file updated as the project's actual shape solidifies — treat it as
   current truth, not a historical record
+- Check `claude-capabilities-checklist.md` before starting a phase's work — see
+  "Using Claude's own capabilities" below; this is not optional context, it's
+  part of the job
+- Architecture calls, anything that spends money, or anything that changes
+  direction go in `NOTES_FOR_PAYITO.md` and stay there for Payito to decide —
+  handle the small stuff, surface the forks, never both silently
 
 ## Conventions that emerged while building Phase 1
 
@@ -70,12 +82,29 @@ Worth keeping as the project grows:
   rather than fixed values, because the failure that actually bites is Yahoo
   changing a payload shape.
 
-## Where the rest of the plan lives
+## Using Claude's own capabilities
 
-The broader phase roadmap and the reasoning behind these choices live in
-Payito's Claude.ai project for this build, in project-instructions.md and
-claude-capabilities-checklist.md. Worth a read for context, not required to keep
-working here.
+This project has two goals, not one: a working trading bot, and Payito
+actually learning what Claude can do by building it rather than by being told.
+A phase that ships without touching a capability the checklist flagged for it
+has only done half the job.
+
+`claude-capabilities-checklist.md`, in Payito's Claude.ai project for this
+build, is the map: what's been used, what's queued for which phase, what's
+explicitly out of scope for now. Read it before starting a phase's work, not
+after finishing it.
+
+When something on that list would genuinely serve what's being built this
+session — not just be interesting — use it, and say so in `PROGRESS.md`: what
+it is, why this phase needed it, its real limits. If nothing fits, say that
+too, briefly, rather than silently skipping the check. Don't reach for a
+capability that doesn't serve the actual work just to check a box; log it in
+the checklist backlog instead and move on, same as the checklist itself
+already says.
+
+The reasoning behind phase decisions and the fuller roadmap live in
+`project-instructions.md` in that same Claude.ai project — read for context,
+but the rules in this file are what actually govern this repo.
 
 ## Getting started
 

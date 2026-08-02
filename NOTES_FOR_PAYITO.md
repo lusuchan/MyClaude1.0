@@ -1,7 +1,15 @@
 # Notes for Payito
 
-Things I could not decide for you, or that need your hands. Nothing here blocked
-the build — I made a call, said what it was, and kept going.
+Things I could not decide for you, or that need your hands.
+
+This file is not a courtesy summary — it is where the decisions that are yours
+actually live. Architecture calls, anything that spends money, and anything
+that changes direction stop here and wait for you. The small stuff gets handled
+and logged in `PROGRESS.md`; the forks get surfaced here. Never both silently.
+
+Nothing below blocked the build. Where I had to move to keep going, I made a
+provisional call, said what it was, and left the decision open here — a
+provisional call is not a decision made on your behalf.
 
 ---
 
@@ -34,20 +42,39 @@ it is the judgement step, and it is one call per day. Try
 noticeably sharper. I did not benchmark this; I had no basis to spend your money
 comparing.
 
-## 3. The watchlist is my guess, not your portfolio
+## 3. The watchlist is yours now — settled, but the `why` fields are still mine
 
-You said 5–10 liquid names were fine if none were defined, so I picked nine:
+**Status: resolved. Noted here because it was open for a while.**
 
-> SPY, QQQ, AAPL, MSFT, NVDA, AMZN, GOOGL, JPM, XLE
+`watchlist.json` holds eleven names:
 
-The logic: two broad-market ETFs for the tape, four mega-cap tech names because
-that is what actually moves the index, one bank as a rates/credit read, and one
-energy ETF because geopolitics shows up there first.
+> SPY, QQQ, GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN, JPM, XLE
 
-**This is almost certainly not what you actually hold or watch.** Edit
-`watchlist.json`. The `why` field on each entry feeds the research prompt, so it
-is worth filling in honestly — "I own this" and "I am thinking about shorting
-this" produce different research.
+The first nine are the ones you specified. JPM and XLE you added after seeing
+them mentioned in the test suite — they were fixtures there, never on the
+briefed list, and you said you wanted them actually briefed. They are the two
+reads the tech names cannot give you: a bank for rates and credit, an energy
+ETF for where geopolitics shows up in a price first.
+
+Three things worth knowing about it:
+
+- **SPY and QQQ are not editable in the way the other nine are.** Phase 1
+  requires both benchmarks and `tests/test_config_cli.py` asserts they are
+  present. Drop one and the suite fails, deliberately.
+- **The `why` field on each entry is still my wording, not yours.** It feeds
+  the research prompt, so it is worth filling in honestly — "I own this" and
+  "I am thinking about shorting this" produce different research. Mine say what
+  each name is for structurally, which is the best I can do without knowing
+  your positions.
+- **Eleven is past the 5–10 you originally set, so I moved the fence.** The
+  test that bounds the watchlist size now allows 5–12 rather than 5–10; at
+  eleven names the old bound would have failed the suite. I did not treat that
+  as a decision to bring to you, since you asked for the eleventh and twelfth
+  names directly, but it is your constraint that moved, so you should know it
+  moved. Cost is barely affected: research is two Claude calls regardless of
+  list length, so each added name is one more yfinance fetch and a little more
+  context, not another round trip. If the list keeps growing, the thing that
+  degrades first is the brief's readability, not the bill.
 
 ## 4. Delivery is still just a file
 
@@ -89,3 +116,43 @@ code picks the workaround up only when a proxy is actually configured.
 On a normal network you need none of this and the variable should stay unset.
 Mentioning it only so the `YF_IMPERSONATE` line in `.env.example` does not look
 mysterious.
+
+## 8. The watchlist fix had not actually landed here — now it has
+
+**Status: resolved. Worth reading once, because of how it was found.**
+
+The new CLAUDE.md described a watchlist this repo did not have. It said the
+nine names were SPY, QQQ, GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN, and that a
+test asserted both benchmarks were present. What was actually on this branch
+was my original placeholder list — SPY, QQQ, AAPL, MSFT, NVDA, AMZN, GOOGL,
+JPM, XLE — and a test that checked only for SPY. You confirmed CLAUDE.md's list
+is the correct one, so the repo has been brought to match it:
+
+- `watchlist.json` now holds those nine names in that order, with SPY and QQQ
+  labelled as benchmarks, plus JPM and XLE at the end — see item 3.
+- `tests/test_config_cli.py` now asserts both benchmarks are present, in its
+  own test, with the reason in a comment. Dropping either fails the suite.
+- `README.md` and item 3 above describe the real list instead of the old one.
+
+**The part worth keeping in mind.** The fix was already made somewhere — your
+instructions referred to it as done, and CLAUDE.md was written as though it
+had landed. It had not landed on `claude/new-session-wxejp7`, and there is no
+watchlist commit anywhere in this branch's history; the last ten commits are
+the Phase 1 build. So a change you had good reason to think was applied was
+live in the docs and absent from the code, and nothing would have caught that
+except reading the JSON. Two loose ends follow from it:
+
+1. **If the fix exists on another branch or in another session, it will now
+   conflict with this one.** Two different edits to the same block of ticker
+   lines. Worth checking before merging anything watchlist-shaped.
+2. **The benchmark assertion is the durable half of this.** The ticker list can
+   drift again; a test cannot drift silently. That is why it went in as its own
+   test rather than one more line in the existing one.
+
+**A footnote that turned into item 3's second half.** Two unit tests in
+`tests/test_market_data.py` use JPM and XLE as sample symbols, and one live
+test fetches JPM. Those exercise the fetch path against particular payload
+shapes and never touched the briefed list, so I left them alone. Mentioning
+that is what prompted you to add both names to the actual watchlist — worth
+recording, because it means the tests were the only place those two names had
+existed since the placeholder list was replaced.

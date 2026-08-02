@@ -1,9 +1,9 @@
 # Progress
 
-_Last updated: 2026-08-01, overnight session._
+_Last updated: 2026-08-01, docs-only session._
 
 **Phase 1 is done and working.** The pipeline produces a real daily brief end to
-end for the nine-ticker watchlist. Error handling and tests are in. Phase 2
+end for the eleven-ticker watchlist. Error handling and tests are in. Phase 2
 research is written up with no Phase 2 code, as asked.
 
 ---
@@ -74,6 +74,104 @@ snapshot even when the model states a different figure in its prose.
 `NOTES_FOR_PAYITO.md` (decisions needing you), `CLAUDE.md` updated to current
 truth, `PHASE2_NOTES.md` (research only).
 
+### The working agreement is now written down as a rule, not a suggestion
+
+**What changed.** `CLAUDE.md` was replaced with a version you supplied
+verbatim. Two things that used to sit in a closing "worth a read for context"
+section are now standing rules: `claude-capabilities-checklist.md` gets read
+before a phase's work starts and what it produced gets logged here, and
+architecture calls, spending, and changes of direction go to
+`NOTES_FOR_PAYITO.md` and stay there for you. The file also now states that
+Phase 1 requires both benchmarks, SPY and QQQ, as a hard requirement rather
+than a watchlist preference.
+
+Then the same pattern got fixed everywhere else it appeared. `README.md` used
+to point at CLAUDE.md as a place to look up the roadmap; it now says those
+rules govern work in this repo and names the two things the README itself does
+not cover. `NOTES_FOR_PAYITO.md` opened by saying nothing in it blocked the
+build, which read as "these were already handled"; it now says plainly that
+this is where your decisions live and that a provisional call is not a decision
+made for you. `PHASE2_NOTES.md` now names the two gates on starting Phase 2 —
+the open questions being yours, and the checklist read — instead of only
+gating on reading the file. In this file, the model choice moved out of
+"Optional:" and into a decision that stays open because it spends money on
+every run, and the next-steps section now carries the checklist step.
+
+**Why.** The project has two goals, and only one of them was written down as
+binding. Framing a capability check or a decision fork as background reading
+means it gets skipped under time pressure by exactly the sessions that most
+need it — the docs said "worth a read" about the part that is actually the job.
+
+**Verified.** Documentation only: no code, tests, or `watchlist.json` touched
+(`git diff --stat` shows five markdown files and nothing else). `pytest` still
+reports 211 passing offline tests, unchanged, since nothing it covers moved.
+
+**One conflict, raised rather than guessed at.** The new `CLAUDE.md` described
+a watchlist this repo did not have, and a benchmark test that did not exist.
+Both were written up as item 8 in `NOTES_FOR_PAYITO.md` and resolved in the
+next entry.
+
+### The watchlist now matches CLAUDE.md, and a test holds it there
+
+**What changed.** `watchlist.json` holds SPY, QQQ, GOOG, META, AAPL, TSLA,
+NVDA, MSFT, AMZN — the list CLAUDE.md describes, confirmed correct. It had been
+carrying my original placeholder nine (GOOGL, JPM and XLE where META, TSLA and
+GOOG should have been). `tests/test_config_cli.py` gained
+`test_the_shipped_watchlist_carries_both_benchmarks`, asserting SPY and QQQ are
+both present, which is the claim CLAUDE.md was already making. `README.md` and
+`NOTES_FOR_PAYITO.md` items 3 and 8 now describe the real list.
+
+**Why.** CLAUDE.md is meant to be current truth about this repo, and on the
+watchlist it was describing a repo that did not exist here — the fix was
+believed done, was live in the docs, and had never landed in the code. Nothing
+would have surfaced that except reading the JSON by hand. The benchmark test is
+the half of this that lasts: the ticker list can drift again, a failing test
+cannot drift quietly.
+
+**Verified.** `pytest` reports 212 passing offline tests, up one from the new
+benchmark test; `python -m briefbot --skip-research --dry-run` renders a brief
+over the new names, 9 of 9 fetched, so GOOG, META and TSLA all resolve at
+Yahoo (that path still hits yfinance — it is the Claude calls it skips). The
+benchmark assertion was confirmed to actually bite by removing QQQ from the
+watchlist and watching it fail, then restoring it. The two `market_data` unit
+tests and one live test that use JPM and XLE were left alone — they exercise
+fetch behaviour against particular payload shapes, not the shipped watchlist.
+
+### JPM and XLE join the watchlist, which is now eleven names
+
+**What changed.** `watchlist.json` gained JPM and XLE at the end of the list,
+after the two benchmarks and the seven tech names. `CLAUDE.md`, `README.md` and
+`NOTES_FOR_PAYITO.md` item 3 now say eleven. The size bound in
+`test_the_shipped_watchlist_is_valid` moved from 5–10 to 5–12, because eleven
+names would otherwise have failed a suite that was encoding the original
+"5–10 liquid names" instruction.
+
+**Why.** The names came up in the previous entry only as a footnote — JPM and
+XLE were sample symbols in the test suite, never on the briefed list. Payito
+read that, and wanted them briefed for real. They cover what seven mega-cap
+tech names and two equity benchmarks structurally cannot: a bank for rates and
+credit, an energy ETF for where geopolitics reaches a price first.
+
+**Why it costs almost nothing.** Research is two Claude calls regardless of how
+long the list is — `research_movers` sends the whole snapshot in one prompt and
+focuses on the notable movers, and `research_macro` sends the watchlist as
+context. So each added name is one more yfinance fetch plus a little more
+prompt context, not another round trip. The thing that degrades as the list
+grows is the brief's readability, not the bill.
+
+**Verified.** 212 offline tests pass, unchanged — this added names, not tests.
+A `--skip-research --dry-run` run fetches 11 of 11, so JPM and XLE both resolve
+at Yahoo, and both appear in the rendered price table with plausible figures.
+The relaxed size bound was checked in the direction that matters: a 13-name
+watchlist still fails it, so the fence moved rather than came down.
+
+**Not verified: a full run with research over eleven names.** This container
+has no `ANTHROPIC_API_KEY`, so the two research calls could not be exercised
+against the longer list. The path itself is unchanged and well covered offline,
+and list length only widens a prompt that already carried nine names, so the
+risk is low — but "low" is not "checked", and the first full run on your key is
+where it would show.
+
 ---
 
 ## Needs you
@@ -82,12 +180,15 @@ Detail in `NOTES_FOR_PAYITO.md`. The short version:
 
 1. **Put your own `ANTHROPIC_API_KEY` in `.env`** — required. Without it you get
    a numbers-only brief, not a crash.
-2. **Edit `watchlist.json`** — the nine tickers are my guess, not your positions.
+2. ~~**Edit `watchlist.json`**~~ — done. Eleven names, yours. The `why` fields
+   are still my wording and feed the research prompt, so they are worth a pass
+   if you want different research.
 3. **Decide on scheduling** — a working cron line is in the README; I did not
    install it.
-4. Optional: try `BRIEF_MODEL=claude-opus-5` for the synthesis step and see if
-   the writing reads better. I had no basis for spending your money benchmarking
-   this.
+4. **Decide the synthesis model** — try `BRIEF_MODEL=claude-opus-5` and see if
+   the writing reads better. Not an optional extra: it spends your money on
+   every run, so it is your call and it stays open until you make it. I had no
+   basis for benchmarking it for you.
 
 ---
 
@@ -106,6 +207,11 @@ Reasonable next moves, roughly in order of value:
   forces (adjusted closes, survivorship bias), and the honest warning that the
   gap between "indicator computed correctly" and "signal worth acting on" is the
   entire difficulty. Read that file before starting.
+
+Whatever comes next, the first step is the same one CLAUDE.md sets out: read
+`claude-capabilities-checklist.md` before the phase's work starts, use what
+genuinely serves it, and record here what was used and why — or that nothing
+fit. That check is part of the work, not preparation for it.
 
 ## Time left over
 
