@@ -432,8 +432,15 @@ Detail in `NOTES_FOR_PAYITO.md`. The short version:
 5. **Decide what happens to the multi-asset branch** — a 514-line research doc
    that exists only on `claude/multi-asset-yfinance-research-40r733` and is
    deliberately not merged. Item 10 in the notes.
-6. **Decide on the web-search tool version** — new, item 11 in the notes. See
-   the entry directly below for what it is and why I did not just change it.
+6. ~~**Decide on the web-search tool version**~~ — closed 2026-08-02. You
+   approved the upgrade, I made it, measured it, and reverted it: it returns no
+   citations, which collapses the brief's sources list from 22 entries to 105.
+   Item 11 in the notes holds the evidence. Nothing further is needed from you
+   unless you want the `_extract` rewrite that would make the newer variant
+   usable, which is real work rather than a version bump.
+
+**Three of the six are now closed.** What is genuinely still yours: the API key
+(1), scheduling (3), and the multi-asset branch (5).
 
 ---
 
@@ -584,9 +591,12 @@ unstarted — `PHASE2_NOTES.md` is research, not a plan I began executing.
 
 Reasonable next moves, roughly in order of value:
 
-- **Run it a few mornings and read the output.** The honest test of a brief is
-  whether it is worth reading on a day when nothing much happened. Three runs on
-  one very loud earnings day is not enough to know.
+- **Run it a few mornings and read the output.** Still the single highest-value
+  thing, and now the only Phase 1 question left that code cannot answer. The
+  honest test of a brief is whether it is worth reading on a day when nothing
+  much happened, and every live run so far has landed on a loud earnings tape.
+  Six runs, all of them eventful, is not yet evidence that the quiet-day brief
+  is worth your seven minutes.
 - **Delivery** — email or Slack, once you are actually reading it daily.
 - **Phase 2 signal layer** — the notes cover indicators, the data quality work it
   forces (adjusted closes, survivorship bias), and the honest warning that the

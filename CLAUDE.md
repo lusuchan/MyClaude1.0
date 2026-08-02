@@ -116,4 +116,10 @@ cp .env.example .env      # then add ANTHROPIC_API_KEY
 python -m briefbot                 # full brief
 python -m briefbot --skip-research # numbers only, no API cost
 pytest                             # 212 tests, no network
+pytest -m live                     # 11 more, opt-in, real network and API
 ```
+
+`.github/workflows/ci.yml` runs that same offline suite on every pull request,
+against Python 3.11 and 3.12, plus a parse-and-ASCII check on `watchlist.json`.
+It needs no secrets — `pytest.ini` pins `-m "not live"`, so CI never spends
+money or touches Yahoo. The live tests stay opt-in and stay yours to run.
