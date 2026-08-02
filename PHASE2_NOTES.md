@@ -3,6 +3,14 @@
 **Research only. No Phase 2 code has been written, and none should be until you
 have read this and decided the open questions at the end.**
 
+Two things gate the start of Phase 2, not just this file. The open questions in
+§6 are Payito's to answer — §3's library-or-hand-written call and §6's scope
+question are architecture decisions, so they belong in `NOTES_FOR_PAYITO.md`
+and stay open until answered, rather than being settled by whoever writes the
+first indicator. And `claude-capabilities-checklist.md` gets read before Phase 2
+work begins, per CLAUDE.md — a Phase 2 that ships without touching what the
+checklist queued for it has done half the job.
+
 Written after Phase 1 shipped. Where I verified something by running it, I say
 so; where I am relaying what the literature or the ecosystem claims, I say that
 instead.
@@ -28,7 +36,7 @@ Three specific traps, all well documented:
 - **Look-ahead bias.** Using today's close to decide today's trade. Trivially
   easy to do by accident with vectorised pandas operations, and it produces
   gorgeous fictional results.
-- **Survivorship bias.** A watchlist of nine names that all exist and are all
+- **Survivorship bias.** A watchlist of eleven names that all exist and are all
   healthy in 2026 is *already* a survivorship-biased sample. Any backtest over
   today's SPY constituents inherits it.
 
@@ -75,7 +83,7 @@ source later.
 
 ### Rate limits become a real constraint
 
-Phase 1 makes nine yfinance calls a day. A backtest sweeping parameters over a
+Phase 1 makes eleven yfinance calls a day. A backtest sweeping parameters over a
 year of intraday data makes thousands. Yahoo rate-limits aggressively — I hit
 HTTP 429 within minutes during Phase 1 development, before any of the retry
 logic was in. Phase 2 needs a local cache (parquet or SQLite) as a

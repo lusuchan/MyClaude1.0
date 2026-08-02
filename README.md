@@ -4,8 +4,13 @@ Phase 1 of the trading project: an automated daily market brief. Pulls price and
 volume data for a watchlist, researches the news and geopolitical backdrop with
 Claude's web search, and synthesises both into a readable markdown brief.
 
-Information only. No signals, no recommendations, no execution — see
-[CLAUDE.md](CLAUDE.md) for the phase roadmap and the standing rules.
+Information only. No signals, no recommendations, no execution.
+[CLAUDE.md](CLAUDE.md) holds the phase roadmap and the standing rules — those
+rules govern any work in this repo, so read them before changing anything here,
+not after. They also cover two things this README does not: checking
+`claude-capabilities-checklist.md` before a phase's work begins, and which kinds
+of decisions stop and go to Payito in
+[NOTES_FOR_PAYITO.md](NOTES_FOR_PAYITO.md) instead of being made here.
 
 ## Setup
 
@@ -32,7 +37,10 @@ Output lands in `briefs/brief-YYYY-MM-DD.md`, with `briefs/latest.md` always
 pointing at the most recent run.
 
 A full run takes about 90 seconds and costs roughly 200k input tokens across
-three Claude calls (two research, one synthesis) plus 12 web searches.
+three Claude calls (two research, one synthesis) plus 12 web searches. The
+number of Claude calls does not change with the watchlist — the ticker news
+research is one call covering all of them — so adding a name costs one more
+yfinance fetch and a little more research context, not another round trip.
 
 ### Exit codes
 
@@ -44,16 +52,28 @@ three Claude calls (two research, one synthesis) plus 12 web searches.
 
 ## The watchlist
 
-`watchlist.json` at the repo root. Nine liquid names to start — broad-market
-ETFs, mega-cap tech, one bank, one energy ETF:
+`watchlist.json` at the repo root. Eleven liquid names: two benchmarks, SPY and
+QQQ, then GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN, then JPM as a rates/credit
+read and XLE as a geopolitics read.
 
 ```json
-{ "symbol": "SPY", "label": "S&P 500 ETF", "why": "the tape" }
+{ "symbol": "GOOG", "label": "Alphabet (Class C)", "why": "Magnificent 7, tracking -- AI/tech boom bellwether; also a position Payito holds" }
 ```
 
 `label` and `why` are both optional but both earn their keep: they end up in the
 research prompt, so telling the model *why* a ticker is on the list shapes what
 it looks for. A bare `"SPY"` string works too.
+
+**Both benchmarks are required, and a test enforces it.** SPY covers the broad
+market and QQQ covers tech/growth, so a move on a single name can be read
+against the tape instead of in isolation — with a watchlist this tech-heavy,
+SPY alone would hide how much of a move was just beta. The other nine names
+are yours to change.
+
+**Keep this file ASCII-only.** It has been broken once by curly `“` `”` quotes
+pasted from an editor that autocorrects them; JSON does not accept those, and
+the run fails before fetching a single price. `python3 -c "import json;
+json.load(open('watchlist.json'))"` is the five-second check.
 
 ## How it fits together
 
@@ -94,9 +114,15 @@ missing:
 ## Tests
 
 ```bash
-pytest              # 211 tests, no network
+pytest              # 212 tests, no network
 pytest -m live      # 11 more that hit Yahoo and the Claude API for real
 ```
+
+`.github/workflows/ci.yml` runs the offline suite on every push and pull
+request, against Python 3.11 and 3.12. It needs no secrets, because `pytest`
+defaults to `-m "not live"` — the network tests stay opt-in and never run in CI.
+It also checks that `watchlist.json` parses and is ASCII-only, which is not
+boilerplate: that exact file broke Phase 1 end to end once (see below).
 
 The live tests are opt-in because they cost time and tokens. They exist because
 mocked tests cannot catch an upstream shape change, and yfinance is an

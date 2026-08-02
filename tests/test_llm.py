@@ -179,8 +179,12 @@ def test_web_search_tool_is_attached_when_requested():
     client.complete(prompt="p", web_search=True)
 
     tools = fake.calls[0]["tools"]
+    # Pinned deliberately. The dynamic-filtering variant was measured and
+    # rejected because it returns no citations, which collapses the brief's
+    # sources list into every result consulted. See the comment in llm.py.
     assert tools[0]["type"] == "web_search_20250305"
     assert tools[0]["max_uses"] == 4
+    assert len(tools) == 1
 
 
 def test_no_tools_are_sent_when_search_is_off():

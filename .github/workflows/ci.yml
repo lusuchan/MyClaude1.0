@@ -1,0 +1,75 @@
+name: tests
+
+# Phase 1 has no deploy step, so this is the only automated gate on the repo.
+# It runs the offline suite and the two data checks that have actually broken
+# this project before. No secrets: `pytest` defaults to `-m "not live"`
+# (pytest.ini), so nothing here touches Yahoo or the Claude API.
+
+on:
+  # `push` is deliberately limited to main. With `branches: ["**"]` every
+  # pull-request commit matched both triggers and ran the whole matrix twice --
+  # four jobs per push instead of two. Branch work is covered by `pull_request`;
+  # this trigger exists so main itself is still checked after a merge.
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.11 is what the project is developed against; 3.12 is here to catch
+        # a break before it arrives rather than after.
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Check watchlist.json parses
+        # This is not boilerplate. Phase 1 was down end to end once because a
+        # paste from an editor that autocorrects quotes put curly quotes in
+        # this file; JSON rejects them, and the run died before fetching a
+        # single price. Cheap to check, and it fails loudly here instead.
+        run: python -c "import json; json.load(open('watchlist.json')); print('watchlist.json is valid JSON')"
+
+      - name: Check watchlist.json is ASCII-only
+        # The same failure, caught one step earlier and with a clearer message.
+        # The file is deliberately ASCII-only so anything non-ASCII is a signal.
+        run: |
+          python - <<'PY'
+          import sys
+          raw = open("watchlist.json", "rb").read()
+          bad = [(i, bytes([b])) for i, b in enumerate(raw) if b > 127]
+          if bad:
+              line = raw[: bad[0][0]].count(b"\n") + 1
+              sys.exit(
+                  f"watchlist.json has {len(bad)} non-ASCII byte(s); first at line {line}. "
+                  "Typographic quotes are the usual cause and will break json.load()."
+              )
+          print("watchlist.json is ASCII-only")
+          PY
+
+      - name: Run offline tests
+        # pytest.ini pins `-m "not live"`, so the 11 network tests are excluded.
+        run: pytest -v

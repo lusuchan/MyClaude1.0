@@ -1,15 +1,17 @@
 {
   "name": "Phase 1 watchlist",
-  "notes": "Two broad-market benchmarks plus real tickers, mega-cap names off the personal watchlist. Commodities and crypto held back for now -- separate market-analyst path, tracked on a different branch, not merged into Phase 1.",
+  "notes": "Real tickers, mega-cap names off the personal watchlist. Two broad-market benchmarks sit at the top, ahead of the single names, because they are reference points rather than positions: Phase 1 requires both and a test asserts they are present, so edit the rest freely but leave SPY and QQQ alone. After the seven tech names come two reads that tech alone cannot give you -- JPM for rates and credit, XLE for where geopolitics reaches a price first. Commodities and crypto stay held back for now: separate market-analyst path, tracked on a different branch, not merged into Phase 1. Kept ASCII-only on purpose -- this file has been broken once already by typographic quotes pasted from an editor that autocorrects them.",
   "tickers": [
-    { "symbol": "SPY",   "label": "S&P 500 ETF",         "why": "broad-market benchmark -- is this a market story or a stock-specific one" },
-    { "symbol": "QQQ",   "label": "Nasdaq 100 ETF",      "why": "tech/growth benchmark -- direct comparison point for the AI names" },
-    { "symbol": "GOOG",  "label": "Alphabet (Class C)", "why": "own it" },
-    { "symbol": "META",  "label": "Meta Platforms",     "why": "Magnificent 7, tracking -- AI/tech boom bellwether" },
-    { "symbol": "AAPL",  "label": "Apple",              "why": "Magnificent 7, tracking -- AI/tech boom bellwether" },
-    { "symbol": "TSLA",  "label": "Tesla",              "why": "Magnificent 7, tracking -- AI/tech boom bellwether" },
-    { "symbol": "NVDA",  "label": "NVIDIA",             "why": "Magnificent 7, tracking -- AI/tech boom bellwether" },
-    { "symbol": "MSFT",  "label": "Microsoft",          "why": "Magnificent 7, tracking -- AI/tech boom bellwether" },
-    { "symbol": "AMZN",  "label": "Amazon",             "why": "Magnificent 7, tracking -- AI/tech boom bellwether" }
+    { "symbol": "SPY",  "label": "S&P 500 ETF",        "why": "broad-market benchmark -- is this a market story or a stock-specific one" },
+    { "symbol": "QQQ",  "label": "Nasdaq 100 ETF",     "why": "tech/growth benchmark -- direct comparison point for the AI names" },
+    { "symbol": "GOOG", "label": "Alphabet (Class C)", "why": "Magnificent 7, tracking -- AI/tech boom bellwether; also a position Payito holds" },
+    { "symbol": "META", "label": "Meta Platforms",     "why": "Magnificent 7, tracking -- AI/tech boom bellwether" },
+    { "symbol": "AAPL", "label": "Apple",              "why": "Magnificent 7, tracking -- AI/tech boom bellwether" },
+    { "symbol": "TSLA", "label": "Tesla",              "why": "Magnificent 7, tracking -- AI/tech boom bellwether" },
+    { "symbol": "NVDA", "label": "NVIDIA",             "why": "Magnificent 7, tracking -- AI/tech boom bellwether" },
+    { "symbol": "MSFT", "label": "Microsoft",          "why": "Magnificent 7, tracking -- AI/tech boom bellwether" },
+    { "symbol": "AMZN", "label": "Amazon",             "why": "Magnificent 7, tracking -- AI/tech boom bellwether" },
+    { "symbol": "JPM",  "label": "JPMorgan Chase",     "why": "rates, credit, macro read" },
+    { "symbol": "XLE",  "label": "Energy Select ETF",  "why": "geopolitics prices in here first" }
   ]
 }

@@ -26,11 +26,18 @@ def write_watchlist(tmp_path: Path, payload: dict) -> Path:
 
 def test_the_shipped_watchlist_is_valid():
     wl = load_watchlist()
-    assert 5 <= len(wl) <= 10, "Phase 1 calls for a small watchlist"
-    assert {"SPY", "QQQ"}.issubset(set(wl.symbols)), (
-        "Phase 1 requires a broad-market benchmark (SPY) and a "
-        "tech/growth benchmark (QQQ) alongside individual positions"
-    )
+    assert 5 <= len(wl) <= 12, "Phase 1 calls for a small watchlist"
+
+
+def test_the_shipped_watchlist_carries_both_benchmarks():
+    # Phase 1 reads a single name's move against the tape, so it needs SPY for
+    # the broad market and QQQ for tech/growth. Not interchangeable: a
+    # tech-heavy watchlist against SPY alone hides how much of a move was beta.
+    # A day where QQQ drops and SPY holds is a different day from one where
+    # both drop, and one benchmark cannot tell those apart.
+    symbols = load_watchlist().symbols
+    assert "SPY" in symbols, "Phase 1 requires the broad-market benchmark"
+    assert "QQQ" in symbols, "Phase 1 requires the tech/growth benchmark"
 
 
 def test_symbols_are_upper_cased_and_stripped(tmp_path):
