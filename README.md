@@ -57,7 +57,7 @@ QQQ, then GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN, then JPM as a rates/credit
 read and XLE as a geopolitics read.
 
 ```json
-{ "symbol": "GOOG", "label": "Alphabet (Class C)", "why": "own it" }
+{ "symbol": "GOOG", "label": "Alphabet (Class C)", "why": "Magnificent 7, tracking -- AI/tech boom bellwether; also a position Payito holds" }
 ```
 
 `label` and `why` are both optional but both earn their keep: they end up in the

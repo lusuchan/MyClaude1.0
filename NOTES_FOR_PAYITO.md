@@ -39,22 +39,27 @@ key when there is one, and quietly skip the live verification that matters.
 `.env.example` documents the canonical name only, which is right for your
 machine; the alias is worth knowing about for anywhere else this runs.
 
-## 2. Model choice — I picked Sonnet, you may want to revisit
+## 2. Model choice — decided: Sonnet 5, no change needed
 
-I defaulted to `claude-sonnet-5` for all three calls. Reasoning: the research
-calls are mostly search-and-summarise, which Sonnet handles well, and they run
-every day, so cost compounds.
+**Status: closed (2026-08-02). Payito's call: Sonnet 5 — cheaper and more
+effective, and there is no need for Opus just to run web searches and
+synthesise.**
 
-The synthesis call is the one where a bigger model might genuinely read better —
-it is the judgement step, and it is one call per day. Try
-`BRIEF_MODEL=claude-opus-5` in `.env` for a week and see whether the writing is
-noticeably sharper. I did not benchmark this; I had no basis to spend your money
-comparing.
+That confirms the existing default rather than changing it. `DEFAULT_MODEL` in
+`config.py:17` was already `claude-sonnet-5`, so no code changed; the decision
+closes the question rather than moving the setting. `BRIEF_MODEL` still works as
+an override if you ever want to A/B it, and `.env.example` documents it.
 
-## 3. The watchlist — settled at eleven names, but one `why` field needs you
+The original open question was whether the synthesis call — the judgement step,
+one call per day — would read better on a bigger model. It stays answered no.
+Reopen it only if the prose itself starts disappointing you; the research calls
+are search-and-summarise, which Sonnet handles well, and they run daily so cost
+compounds.
 
-**Status: resolved, and now reconciled across two branches that had each
-solved half of it. One small thing below is still yours.**
+## 3. The watchlist — settled at eleven names, and the last `why` field is now answered
+
+**Status: fully resolved (2026-08-02). Reconciled across two branches that had
+each solved half of it, and the one line that was still yours is now closed.**
 
 `watchlist.json` holds eleven names:
 
@@ -72,21 +77,27 @@ and credit, an energy ETF for where geopolitics shows up in a price first.
 Commodities and crypto stay deliberately held back — that is the separate
 market-analyst path on its own branch, not merged into Phase 1. See item 10.
 
-### The one thing here that is still a question for you
+### The one thing here that was still a question for you — now answered
 
-**`GOOG`'s `why` field says `"own it"`, and I cannot verify that.** It feeds the
-research prompt, so it is not decoration — "I own this" and "I am thinking about
-shorting this" produce genuinely different research. It arrived via the PR #3
-branch, where the `why` fields were filled in on your behalf; your own edit to
-this file (`e338486`) had no `why` fields at all, and the note you wrote with it
-said the names came off a watchlist screenshot, which is not the same as
-ownership. So it may be exactly right and something you said in that session, or
-it may be an inference that hardened into a fact.
+**Status: closed (2026-08-02).** `GOOG`'s `why` said `"own it"`, which I could
+not verify and would not silently drop. Payito confirmed it: GOOG's reason is
+the same as the other seven Mag 7 names, **and** he owns it. Both halves were
+true — the ownership claim was real, and it was also incomplete, because the
+line said only the part that made GOOG different and none of the part it shared
+with its peers.
 
-I kept it rather than deleting it, because throwing away a possibly-real
-statement about your positions is worse than flagging it. **Confirm or correct
-that one line.** The other ten say what each name is for structurally, which is
-the honest limit of what I can write without knowing what you hold.
+The field now reads:
+
+> `"Magnificent 7, tracking -- AI/tech boom bellwether; also a position Payito holds"`
+
+That matters to the research prompt rather than being cosmetic: the old string
+told the model *only* that the ticker was owned, so GOOG was the one Mag 7 name
+whose prompt context omitted the bellwether framing the other seven get. It now
+carries both, and the ownership signal is stated plainly rather than implied by
+two words.
+
+The other ten still say what each name is for structurally, which remains the
+honest limit of what I can write without knowing what you hold.
 
 ### Two things about the file itself
 
@@ -287,3 +298,37 @@ Three options, in the order I would pick them:
 
 I did not pick. It is a direction question about a path you explicitly deferred,
 which puts it here rather than in my hands.
+
+## 11. Web-search tool version — a one-line change I did not make
+
+**New, 2026-08-02.** Surfaced while confirming your Sonnet 5 decision.
+
+`briefbot/llm.py:19` pins:
+
+```python
+WEB_SEARCH_TOOL_TYPE = "web_search_20250305"
+```
+
+That is the basic web-search variant. Sonnet 5 also supports a newer one,
+`web_search_20260209`, which adds **dynamic filtering**: it filters search
+results *before* they reach the model's context window rather than after,
+which is meant to improve both accuracy and token efficiency.
+
+**Why it might genuinely matter here.** Research is not a side feature of this
+pipeline, it is one of its four steps, and the failure mode we have actually
+seen is a research call returning a near-empty result that the run summary
+reported as clean (recorded under the reconciliation entry in `PROGRESS.md`).
+Better filtering upstream of the context window is aimed squarely at that class
+of problem. It is also a one-line change and costs nothing extra — the docs say
+dynamic filtering is free when used with web search.
+
+**Why I did not just do it.** It changes how the research step behaves, and the
+standing rule in `CLAUDE.md` is that behaviour and direction changes come to you
+rather than getting made quietly. It is also exactly the kind of change whose
+effect I cannot honestly assess from one run — I would be swapping a working
+component and telling you it was better on the strength of the release notes.
+
+**What I would suggest.** Change it, then read a week of briefs against the
+current ones. If you want, I can make the change and note in `PROGRESS.md` that
+the comparison is outstanding — but the swap is yours to authorise, and the
+verdict needs more than one morning either way.

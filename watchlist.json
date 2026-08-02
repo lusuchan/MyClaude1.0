@@ -4,7 +4,7 @@
   "tickers": [
     { "symbol": "SPY",  "label": "S&P 500 ETF",        "why": "broad-market benchmark -- is this a market story or a stock-specific one" },
     { "symbol": "QQQ",  "label": "Nasdaq 100 ETF",     "why": "tech/growth benchmark -- direct comparison point for the AI names" },
-    { "symbol": "GOOG", "label": "Alphabet (Class C)", "why": "own it" },
+    { "symbol": "GOOG", "label": "Alphabet (Class C)", "why": "Magnificent 7, tracking -- AI/tech boom bellwether; also a position Payito holds" },
     { "symbol": "META", "label": "Meta Platforms",     "why": "Magnificent 7, tracking -- AI/tech boom bellwether" },
     { "symbol": "AAPL", "label": "Apple",              "why": "Magnificent 7, tracking -- AI/tech boom bellwether" },
     { "symbol": "TSLA", "label": "Tesla",              "why": "Magnificent 7, tracking -- AI/tech boom bellwether" },

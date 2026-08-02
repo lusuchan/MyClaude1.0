@@ -419,19 +419,60 @@ Detail in `NOTES_FOR_PAYITO.md`. The short version:
 
 1. **Put your own `ANTHROPIC_API_KEY` in `.env`** — required. Without it you get
    a numbers-only brief, not a crash.
-2. ~~**Edit `watchlist.json`**~~ — done. Eleven names, yours. One line still
-   needs you: `GOOG`'s `why` says "own it", which I could not verify and did not
-   want to silently drop. Confirm or correct it — that field feeds the research
-   prompt.
+2. ~~**Edit `watchlist.json`**~~ — done. Eleven names, yours. ~~One line still
+   needs you: `GOOG`'s `why`~~ — closed 2026-08-02: it is the same reason as the
+   other seven Mag 7 names, plus Payito does own it. The field now carries both.
 3. **Decide on scheduling** — a working cron line is in the README; I did not
    install it.
-4. **Decide the synthesis model** — try `BRIEF_MODEL=claude-opus-5` and see if
-   the writing reads better. Not an optional extra: it spends your money on
-   every run, so it is your call and it stays open until you make it. I had no
-   basis for benchmarking it for you.
+4. ~~**Decide the synthesis model**~~ — closed 2026-08-02: **Sonnet 5**, on
+   Payito's call — cheaper and more effective, and Opus is not needed just to
+   run web searches and synthesise. This confirmed the existing default rather
+   than changing it; `DEFAULT_MODEL` was already `claude-sonnet-5`, so no code
+   moved. `BRIEF_MODEL` remains available as an override.
 5. **Decide what happens to the multi-asset branch** — a 514-line research doc
    that exists only on `claude/multi-asset-yfinance-research-40r733` and is
    deliberately not merged. Item 10 in the notes.
+6. **Decide on the web-search tool version** — new, item 11 in the notes. See
+   the entry directly below for what it is and why I did not just change it.
+
+---
+
+### Two of Payito's open decisions are closed (2026-08-02)
+
+**What changed.** Notes items 2 and 4 were the two things sitting open on
+Payito. Both are now answered, and they resolved in opposite ways — worth
+recording, because "decided" and "changed" are not the same thing.
+
+**`GOOG`'s `why` — a real edit.** The field said `"own it"`. Payito's answer:
+the reason is the same as the other seven Mag 7 names, *and* he owns it. So the
+old string was true but incomplete — GOOG was the one Mag 7 name whose research
+prompt omitted the bellwether framing its seven peers all carry, because the
+line said only what made it different. It now reads
+`"Magnificent 7, tracking -- AI/tech boom bellwether; also a position Payito
+holds"`, carrying both halves. This feeds `research_movers`, so it is a change
+to the prompt's content, not a doc fix.
+
+**The synthesis model — a decision that changed nothing.** Payito's call is
+Sonnet 5: cheaper and more effective, with no need for Opus just to run web
+searches and synthesise. `DEFAULT_MODEL` in `config.py:17` was **already**
+`claude-sonnet-5`, so no code moved — the decision closes the question rather
+than adjusting the setting, and `load_settings()` was run to confirm it still
+resolves to `claude-sonnet-5`. Recording it explicitly because a closed question
+that required no diff is exactly the kind of thing the next session reopens
+otherwise.
+
+**Verified.** `watchlist.json` parses, is still ASCII-only (the check the file's
+own note asks for), and still holds eleven tickers; 212 offline tests pass,
+unchanged; `--skip-research --dry-run` renders 11/11.
+
+**One thing flagged rather than changed.** `llm.py:19` pins
+`WEB_SEARCH_TOOL_TYPE = "web_search_20250305"`, the basic web-search variant.
+Sonnet 5 also supports `web_search_20260209`, which filters search results
+before they reach the context window. Given that research is this pipeline's
+core step, and that a degenerate near-empty macro result has been seen once
+already, that is plausibly a real improvement — but it changes how research
+behaves, so under the standing rules it is Payito's call, not mine. It is item
+11 in the notes.
 
 ---
 
