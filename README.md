@@ -37,7 +37,10 @@ Output lands in `briefs/brief-YYYY-MM-DD.md`, with `briefs/latest.md` always
 pointing at the most recent run.
 
 A full run takes about 90 seconds and costs roughly 200k input tokens across
-three Claude calls (two research, one synthesis) plus 12 web searches.
+three Claude calls (two research, one synthesis) plus 12 web searches. The
+number of Claude calls does not change with the watchlist — the ticker news
+research is one call covering all of them — so adding a name costs one more
+yfinance fetch and a little more research context, not another round trip.
 
 ### Exit codes
 
@@ -49,8 +52,9 @@ three Claude calls (two research, one synthesis) plus 12 web searches.
 
 ## The watchlist
 
-`watchlist.json` at the repo root. Nine liquid names: two benchmarks, SPY and
-QQQ, then GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN.
+`watchlist.json` at the repo root. Eleven liquid names: two benchmarks, SPY and
+QQQ, then GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN, then JPM as a rates/credit
+read and XLE as a geopolitics read.
 
 ```json
 { "symbol": "SPY", "label": "S&P 500 ETF", "why": "benchmark: the broad tape" }

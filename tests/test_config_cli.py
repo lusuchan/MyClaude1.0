@@ -26,7 +26,7 @@ def write_watchlist(tmp_path: Path, payload: dict) -> Path:
 
 def test_the_shipped_watchlist_is_valid():
     wl = load_watchlist()
-    assert 5 <= len(wl) <= 10, "Phase 1 calls for a small watchlist"
+    assert 5 <= len(wl) <= 12, "Phase 1 calls for a small watchlist"
 
 
 def test_the_shipped_watchlist_carries_both_benchmarks():

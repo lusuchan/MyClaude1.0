@@ -36,7 +36,7 @@ Three specific traps, all well documented:
 - **Look-ahead bias.** Using today's close to decide today's trade. Trivially
   easy to do by accident with vectorised pandas operations, and it produces
   gorgeous fictional results.
-- **Survivorship bias.** A watchlist of nine names that all exist and are all
+- **Survivorship bias.** A watchlist of eleven names that all exist and are all
   healthy in 2026 is *already* a survivorship-biased sample. Any backtest over
   today's SPY constituents inherits it.
 
@@ -83,7 +83,7 @@ source later.
 
 ### Rate limits become a real constraint
 
-Phase 1 makes nine yfinance calls a day. A backtest sweeping parameters over a
+Phase 1 makes eleven yfinance calls a day. A backtest sweeping parameters over a
 year of intraday data makes thousands. Yahoo rate-limits aggressively — I hit
 HTTP 429 within minutes during Phase 1 development, before any of the retry
 logic was in. Phase 2 needs a local cache (parquet or SQLite) as a

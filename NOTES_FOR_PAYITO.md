@@ -46,17 +46,19 @@ comparing.
 
 **Status: resolved. Noted here because it was open for a while.**
 
-`watchlist.json` holds the nine names you specified:
+`watchlist.json` holds eleven names:
 
-> SPY, QQQ, GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN
+> SPY, QQQ, GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN, JPM, XLE
 
-I originally picked a different nine as a placeholder — the same two benchmarks,
-but with JPM as a rates/credit read and XLE as a geopolitics read in place of
-META and TSLA. That guess is gone; the list above is what runs.
+The first nine are the ones you specified. JPM and XLE you added after seeing
+them mentioned in the test suite — they were fixtures there, never on the
+briefed list, and you said you wanted them actually briefed. They are the two
+reads the tech names cannot give you: a bank for rates and credit, an energy
+ETF for where geopolitics shows up in a price first.
 
-Two things worth knowing about it:
+Three things worth knowing about it:
 
-- **SPY and QQQ are not editable in the way the other seven are.** Phase 1
+- **SPY and QQQ are not editable in the way the other nine are.** Phase 1
   requires both benchmarks and `tests/test_config_cli.py` asserts they are
   present. Drop one and the suite fails, deliberately.
 - **The `why` field on each entry is still my wording, not yours.** It feeds
@@ -64,6 +66,15 @@ Two things worth knowing about it:
   "I am thinking about shorting this" produce different research. Mine say what
   each name is for structurally, which is the best I can do without knowing
   your positions.
+- **Eleven is past the 5–10 you originally set, so I moved the fence.** The
+  test that bounds the watchlist size now allows 5–12 rather than 5–10; at
+  eleven names the old bound would have failed the suite. I did not treat that
+  as a decision to bring to you, since you asked for the eleventh and twelfth
+  names directly, but it is your constraint that moved, so you should know it
+  moved. Cost is barely affected: research is two Claude calls regardless of
+  list length, so each added name is one more yfinance fetch and a little more
+  context, not another round trip. If the list keeps growing, the thing that
+  degrades first is the brief's readability, not the bill.
 
 ## 4. Delivery is still just a file
 
@@ -117,8 +128,8 @@ was my original placeholder list — SPY, QQQ, AAPL, MSFT, NVDA, AMZN, GOOGL,
 JPM, XLE — and a test that checked only for SPY. You confirmed CLAUDE.md's list
 is the correct one, so the repo has been brought to match it:
 
-- `watchlist.json` now holds the nine names above, in that order, with SPY and
-  QQQ labelled as benchmarks.
+- `watchlist.json` now holds those nine names in that order, with SPY and QQQ
+  labelled as benchmarks, plus JPM and XLE at the end — see item 3.
 - `tests/test_config_cli.py` now asserts both benchmarks are present, in its
   own test, with the reason in a comment. Dropping either fails the suite.
 - `README.md` and item 3 above describe the real list instead of the old one.
@@ -132,13 +143,16 @@ live in the docs and absent from the code, and nothing would have caught that
 except reading the JSON. Two loose ends follow from it:
 
 1. **If the fix exists on another branch or in another session, it will now
-   conflict with this one.** Two different edits to the same nine lines. Worth
-   checking before merging anything watchlist-shaped.
+   conflict with this one.** Two different edits to the same block of ticker
+   lines. Worth checking before merging anything watchlist-shaped.
 2. **The benchmark assertion is the durable half of this.** The ticker list can
    drift again; a test cannot drift silently. That is why it went in as its own
    test rather than one more line in the existing one.
 
-Two unit tests in `tests/test_market_data.py` still use JPM and XLE as sample
-symbols, and one live test fetches JPM. Those are exercising the fetch path
-against a specific payload shape, not the shipped watchlist, so I left them
-alone — they would still be valid tests if the watchlist changed again.
+**A footnote that turned into item 3's second half.** Two unit tests in
+`tests/test_market_data.py` use JPM and XLE as sample symbols, and one live
+test fetches JPM. Those exercise the fetch path against particular payload
+shapes and never touched the briefed list, so I left them alone. Mentioning
+that is what prompted you to add both names to the actual watchlist — worth
+recording, because it means the tests were the only place those two names had
+existed since the placeholder list was replaced.

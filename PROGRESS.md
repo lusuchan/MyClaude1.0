@@ -3,7 +3,7 @@
 _Last updated: 2026-08-01, docs-only session._
 
 **Phase 1 is done and working.** The pipeline produces a real daily brief end to
-end for the nine-ticker watchlist. Error handling and tests are in. Phase 2
+end for the eleven-ticker watchlist. Error handling and tests are in. Phase 2
 research is written up with no Phase 2 code, as asked.
 
 ---
@@ -130,13 +130,47 @@ cannot drift quietly.
 
 **Verified.** `pytest` reports 212 passing offline tests, up one from the new
 benchmark test; `python -m briefbot --skip-research --dry-run` renders a brief
-over the new nine names, 9 of 9 fetched, so GOOG, META and TSLA all resolve at
+over the new names, 9 of 9 fetched, so GOOG, META and TSLA all resolve at
 Yahoo (that path still hits yfinance — it is the Claude calls it skips). The
-benchmark assertion
-was confirmed to actually bite by removing QQQ from the watchlist and watching
-it fail, then restoring it. The two `market_data` unit tests and one live test
-that use JPM and XLE were left alone — they exercise fetch behaviour against
-particular payload shapes, not the shipped watchlist.
+benchmark assertion was confirmed to actually bite by removing QQQ from the
+watchlist and watching it fail, then restoring it. The two `market_data` unit
+tests and one live test that use JPM and XLE were left alone — they exercise
+fetch behaviour against particular payload shapes, not the shipped watchlist.
+
+### JPM and XLE join the watchlist, which is now eleven names
+
+**What changed.** `watchlist.json` gained JPM and XLE at the end of the list,
+after the two benchmarks and the seven tech names. `CLAUDE.md`, `README.md` and
+`NOTES_FOR_PAYITO.md` item 3 now say eleven. The size bound in
+`test_the_shipped_watchlist_is_valid` moved from 5–10 to 5–12, because eleven
+names would otherwise have failed a suite that was encoding the original
+"5–10 liquid names" instruction.
+
+**Why.** The names came up in the previous entry only as a footnote — JPM and
+XLE were sample symbols in the test suite, never on the briefed list. Payito
+read that, and wanted them briefed for real. They cover what seven mega-cap
+tech names and two equity benchmarks structurally cannot: a bank for rates and
+credit, an energy ETF for where geopolitics reaches a price first.
+
+**Why it costs almost nothing.** Research is two Claude calls regardless of how
+long the list is — `research_movers` sends the whole snapshot in one prompt and
+focuses on the notable movers, and `research_macro` sends the watchlist as
+context. So each added name is one more yfinance fetch plus a little more
+prompt context, not another round trip. The thing that degrades as the list
+grows is the brief's readability, not the bill.
+
+**Verified.** 212 offline tests pass, unchanged — this added names, not tests.
+A `--skip-research --dry-run` run fetches 11 of 11, so JPM and XLE both resolve
+at Yahoo, and both appear in the rendered price table with plausible figures.
+The relaxed size bound was checked in the direction that matters: a 13-name
+watchlist still fails it, so the fence moved rather than came down.
+
+**Not verified: a full run with research over eleven names.** This container
+has no `ANTHROPIC_API_KEY`, so the two research calls could not be exercised
+against the longer list. The path itself is unchanged and well covered offline,
+and list length only widens a prompt that already carried nine names, so the
+risk is low — but "low" is not "checked", and the first full run on your key is
+where it would show.
 
 ---
 
@@ -146,9 +180,9 @@ Detail in `NOTES_FOR_PAYITO.md`. The short version:
 
 1. **Put your own `ANTHROPIC_API_KEY` in `.env`** — required. Without it you get
    a numbers-only brief, not a crash.
-2. ~~**Edit `watchlist.json`**~~ — done. The nine names are the ones you
-   specified. The `why` fields are still my wording and feed the research
-   prompt, so they are worth a pass if you want different research.
+2. ~~**Edit `watchlist.json`**~~ — done. Eleven names, yours. The `why` fields
+   are still my wording and feed the research prompt, so they are worth a pass
+   if you want different research.
 3. **Decide on scheduling** — a working cron line is in the README; I did not
    install it.
 4. **Decide the synthesis model** — try `BRIEF_MODEL=claude-opus-5` and see if

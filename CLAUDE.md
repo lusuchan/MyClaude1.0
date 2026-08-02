@@ -38,8 +38,9 @@ market_data  ->  research  ->  synthesis  ->  render
   mechanically.
 - `briefbot/pipeline.py`, `briefbot/cli.py` — orchestration and `python -m briefbot`.
 
-Watchlist lives in `watchlist.json` (9 tickers: two benchmarks, SPY and QQQ,
-then GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN). Output goes to `briefs/`.
+Watchlist lives in `watchlist.json` (11 tickers: two benchmarks, SPY and QQQ,
+then GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN, then JPM for rates/credit and
+XLE for geopolitics). Output goes to `briefs/`.
 
 **Phase 1 requires both benchmarks.** SPY for the broad market and QQQ for
 tech/growth, so a move on a single name can be read against the tape rather than
