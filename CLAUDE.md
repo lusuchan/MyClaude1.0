@@ -115,5 +115,5 @@ cp .env.example .env      # then add ANTHROPIC_API_KEY
 
 python -m briefbot                 # full brief
 python -m briefbot --skip-research # numbers only, no API cost
-pytest                             # 211 tests, no network
+pytest                             # 212 tests, no network
 ```

@@ -1,11 +1,82 @@
 # Progress
 
-_Last updated: 2026-08-02. Started as a docs-only session; the watchlist and one
-test moved once the docs turned out to be describing a repo that did not exist._
+_Last updated: 2026-08-02, reconciliation session. `main` and the Phase 1
+branch had diverged into two half-correct versions of Phase 1; they are now one
+line of history again. Entries below run oldest-first within each section._
 
 **Phase 1 is done and working.** The pipeline produces a real daily brief end to
 end for the eleven-ticker watchlist. Error handling and tests are in. Phase 2
 research is written up with no Phase 2 code, as asked.
+
+---
+
+## Fixed
+
+_These two entries are the record from the `main` line of history, kept as
+written on 2026-08-01. Specifics in them were later superseded — the watchlist
+went from nine names to eleven, the size bound from 5–10 to 5–12, and the
+benchmark assertion moved into its own test — but the entries are not rewritten,
+because what they record is how the problems were found, and that does not
+expire. The reconciliation entry at the bottom of "Done" explains how these came
+to sit on a different branch from the rest._
+
+### Benchmarks are now a Phase 1 requirement (2026-08-01)
+
+**What changed.** SPY and QQQ added to `watchlist.json`, at the top and ahead of
+the seven single names, because they are benchmarks rather than positions. Nine
+tickers total, still inside the 5–10 range Phase 1 calls for.
+
+**Why.** The rest of the watchlist is individual tech names, which on their own
+cannot answer the first question worth asking about any move: is this a market
+story or a stock-specific one. SPY gives the broad tape, QQQ the tech/growth
+comparison for the AI names. Neither is redundant with the other — a day where
+QQQ drops and SPY holds says something specific.
+
+**The leftover failing test is closed out.**
+`test_the_shipped_watchlist_is_valid` was asserting `"SPY" in wl.symbols`,
+hardcoded from the old placeholder list. It now asserts both benchmarks are
+present and carries a message saying why, so the requirement is legible rather
+than an unexplained string comparison:
+
+```python
+assert {"SPY", "QQQ"}.issubset(set(wl.symbols)), (
+    "Phase 1 requires a broad-market benchmark (SPY) and a "
+    "tech/growth benchmark (QQQ) alongside individual positions"
+)
+```
+
+**Verified.** `json.load()` parses clean, `pytest` is **211 passed / 0 failed**,
+and `--dry-run --skip-research` renders a full 9/9 table.
+
+### `watchlist.json` was invalid JSON on `main` (2026-08-01)
+
+**What broke.** Phase 1 was down end to end on `main` (`e338486`). Both
+`python -m briefbot` and `pytest` failed at the first step, before any market
+data was fetched.
+
+**Root cause.** The watchlist was pasted in with typographic quotes — curly `“`
+`”` (U+201C/U+201D) instead of ASCII `"`. JSON only accepts ASCII double quotes,
+so `json.load()` never got past line 2:
+
+```
+json.decoder.JSONDecodeError: Expecting property name enclosed in
+double quotes: line 2 column 1 (char 2)
+```
+
+`load_watchlist()` in `config.py` turned that into a `ConfigError` and the run
+stopped there. The failure was in the data file, not the code — nothing in
+`briefbot/` was at fault and nothing in `briefbot/` changed.
+
+**What changed.** `watchlist.json` rewritten with straight ASCII quotes, and the
+seven real tickers kept: GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN. Indices,
+commodities and crypto stay held back for the separate market-analyst path.
+`CLAUDE.md` was documenting the old nine-ticker placeholder list; it now matches
+the file.
+
+**Verified.** `json.load()` parses clean, and
+`python -m briefbot --dry-run --skip-research` renders a full 7/7 table.
+`pytest` was 210 passed / 1 failed at the time — a stale assertion, not this
+fix. Closed out by the benchmark entry above.
 
 ---
 
@@ -201,6 +272,86 @@ narrow and repeatable: check the code's actual resolution order before
 declaring a capability absent, rather than probing the documented name and
 stopping there.
 
+### `main` and the Phase 1 branch are one line of history again (2026-08-02)
+
+**What was wrong.** Phase 1 existed as two different half-correct versions on
+two branches, and neither was complete. `main` had PRs #1 and #3: the
+typographic-quote fix, Payito's seven real tickers, and the first benchmark
+assertion. `claude/daily-brief-phase-1-24xgbn` had PRs #4 and #5: JPM and XLE,
+the doc-binding work, the live verification — but those were merged into the
+Phase 1 branch rather than into `main`, so the two lines never met. Seven
+commits on one side, six on the other, five files in conflict.
+
+This is exactly the collision item 8 of the notes predicted in the abstract
+("if the fix exists on another branch or in another session, it will now
+conflict with this one"). It had already happened by the time that sentence was
+written; nobody had looked.
+
+**What the two sides disagreed about, and how each was settled.**
+
+- **`watchlist.json`** — `main` had nine names with Payito's own label text
+  (`Alphabet (Class C)`) and file name (`Phase 1 watchlist`); the branch had
+  eleven names with generic labels. Kept eleven, since CLAUDE.md mandates
+  JPM and XLE, and restored Payito's authored strings on top. The `notes` field
+  is merged from both: the benchmark rule, the JPM/XLE rationale, and Payito's
+  own statement that commodities and crypto are deliberately held back.
+- **`tests/test_config_cli.py`** — both sides had independently written a
+  benchmark requirement. `main` folded it into `test_the_shipped_watchlist_is_valid`
+  with a 5–10 size bound; the branch split it into its own test with 5–12. Took
+  the branch's split version — eleven names need the wider bound, and a separate
+  test names the thing that failed — and carried `main`'s clearer reasoning into
+  the comment.
+- **`CLAUDE.md`** — took the branch's eleven-ticker description, which is what
+  the governing file Payito supplied actually says.
+- **`PROGRESS.md` and `NOTES_FOR_PAYITO.md`** — merged rather than picked. Both
+  sides' factual records are kept; see the note under "Fixed" about why those
+  two entries were not rewritten.
+
+**One thing I flagged instead of deciding.** `main`'s `why` field for `GOOG`
+reads `"own it"`. Payito's own edit to `watchlist.json` (`e338486`) contained no
+`why` fields at all, and the note attached to it said the names came off a
+watchlist screenshot — which is not the same as ownership. So that string is
+either something Payito said in the PR #3 session or an inference that hardened
+into a fact, and I cannot tell which from the history. It feeds the research
+prompt, so it is not cosmetic. Kept it rather than deleting it, because
+discarding a possibly-real statement about someone's positions is the worse
+error, and raised it as the open item in notes item 3.
+
+**Verified from zero, not incrementally.** The venv was deleted and rebuilt from
+`requirements.txt`, so nothing carried over from the pre-merge tree:
+
+- **212 offline tests pass**, 11 deselected. Both stale "211" counts in
+  `CLAUDE.md` and `README.md` corrected.
+- **All 11 live tests pass** (`pytest -m live`, ~87s) — these hit Yahoo for
+  real, which is the check that catches a changed payload shape.
+- **The guards were confirmed to bite, not just to pass.** Removing QQQ fails
+  the benchmark test; removing SPY fails it on the other assertion with the
+  right message; a thirteenth name fails the size bound. A test that has never
+  been seen red is not yet evidence.
+- **`--skip-research --dry-run` renders 11/11.**
+- **A full live end-to-end run**: 11/11 tickers, 12 web searches, 15 cited
+  sources, both research calls and synthesis returning, ~101s. That is the fifth
+  live run and the first on the reconciled tree.
+
+**One observation from that run, not a bug and not fixed.** The macro research
+call came back at 163 characters — a near-empty result, and its content was cut
+off mid-sentence about the FOMC vote. Nothing flagged it: the pipeline counts a
+short-but-non-empty response as success, so the run reported clean. The brief
+was still honest about it, saying the transcript was cut off rather than
+inventing the dissent detail, which is the "no clear catalyst" convention
+holding under a condition it was not specifically designed for. Worth knowing
+that a degenerate research result currently looks identical to a good one in the
+run summary. Left alone deliberately — adding a length threshold is a behaviour
+change, and this session's job was reconciliation.
+
+**The capability check.** Same answer as last session, for the same reason:
+`claude-capabilities-checklist.md` lives in Payito's Claude.ai project and
+nothing in this container can read it, so the check could not be run as written.
+Recording that rather than skipping it silently is what the rule asks for. It
+remains item 9. Nothing on the list was reached for this session in any case —
+the work was a git reconciliation and a verification pass, and inventing a use
+for a capability here would have been the box-ticking CLAUDE.md warns against.
+
 ---
 
 ## Needs you
@@ -209,15 +360,19 @@ Detail in `NOTES_FOR_PAYITO.md`. The short version:
 
 1. **Put your own `ANTHROPIC_API_KEY` in `.env`** — required. Without it you get
    a numbers-only brief, not a crash.
-2. ~~**Edit `watchlist.json`**~~ — done. Eleven names, yours. The `why` fields
-   are still my wording and feed the research prompt, so they are worth a pass
-   if you want different research.
+2. ~~**Edit `watchlist.json`**~~ — done. Eleven names, yours. One line still
+   needs you: `GOOG`'s `why` says "own it", which I could not verify and did not
+   want to silently drop. Confirm or correct it — that field feeds the research
+   prompt.
 3. **Decide on scheduling** — a working cron line is in the README; I did not
    install it.
 4. **Decide the synthesis model** — try `BRIEF_MODEL=claude-opus-5` and see if
    the writing reads better. Not an optional extra: it spends your money on
    every run, so it is your call and it stays open until you make it. I had no
    basis for benchmarking it for you.
+5. **Decide what happens to the multi-asset branch** — a 514-line research doc
+   that exists only on `claude/multi-asset-yfinance-research-40r733` and is
+   deliberately not merged. Item 10 in the notes.
 
 ---
 

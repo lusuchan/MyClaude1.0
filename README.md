@@ -57,7 +57,7 @@ QQQ, then GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN, then JPM as a rates/credit
 read and XLE as a geopolitics read.
 
 ```json
-{ "symbol": "SPY", "label": "S&P 500 ETF", "why": "benchmark: the broad tape" }
+{ "symbol": "GOOG", "label": "Alphabet (Class C)", "why": "own it" }
 ```
 
 `label` and `why` are both optional but both earn their keep: they end up in the
@@ -67,8 +67,13 @@ it looks for. A bare `"SPY"` string works too.
 **Both benchmarks are required, and a test enforces it.** SPY covers the broad
 market and QQQ covers tech/growth, so a move on a single name can be read
 against the tape instead of in isolation — with a watchlist this tech-heavy,
-SPY alone would hide how much of a move was just beta. The other seven names
+SPY alone would hide how much of a move was just beta. The other nine names
 are yours to change.
+
+**Keep this file ASCII-only.** It has been broken once by curly `“` `”` quotes
+pasted from an editor that autocorrects them; JSON does not accept those, and
+the run fails before fetching a single price. `python3 -c "import json;
+json.load(open('watchlist.json'))"` is the five-second check.
 
 ## How it fits together
 
@@ -109,7 +114,7 @@ missing:
 ## Tests
 
 ```bash
-pytest              # 211 tests, no network
+pytest              # 212 tests, no network
 pytest -m live      # 11 more that hit Yahoo and the Claude API for real
 ```
 
