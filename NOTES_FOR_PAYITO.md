@@ -165,3 +165,33 @@ shapes and never touched the briefed list, so I left them alone. Mentioning
 that is what prompted you to add both names to the actual watchlist — worth
 recording, because it means the tests were the only place those two names had
 existed since the placeholder list was replaced.
+
+## 9. The capabilities checklist is now a rule I cannot actually follow
+
+**Status: needs a decision. Small, but it will recur every session.**
+
+CLAUDE.md's new standing rules say to check `claude-capabilities-checklist.md`
+before a phase's work, and call it "not optional context, it's part of the job."
+That file lives in your Claude.ai project, not in this repo. A session working
+in this container cannot read it — I could not, this time — so the rule as
+written is one no session running here can comply with.
+
+That is not an argument against the rule. It is a good rule and it is the
+reason the file now says so plainly. It just needs the map to be somewhere the
+territory can reach. Three options, in the order I would pick them:
+
+1. **Commit the checklist to the repo** — say `docs/claude-capabilities-checklist.md`.
+   Then the rule is mechanically followable, the checklist is versioned
+   alongside the work it describes, and updates to it show up in review. The
+   cost is that it stops being a private scratchpad and becomes a project
+   document, which may not be what you want it to be.
+2. **Paste it into the session** when a phase starts, the same way you pasted
+   the CLAUDE.md update. Zero repo change, but it depends on you remembering
+   every time, and the rule says the check happens *before* the work starts.
+3. **Soften the rule** to say the check happens wherever the checklist lives,
+   and is Payito's to run when working from Claude.ai. Honest, but it gives up
+   the thing the rule was written to get.
+
+I did not pick one. Until you do, the honest thing is what I did this session:
+say in `PROGRESS.md` that the check could not be run and why, rather than
+quietly skipping it and letting the file imply otherwise.
