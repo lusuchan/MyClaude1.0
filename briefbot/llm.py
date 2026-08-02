@@ -16,6 +16,14 @@ from .retry import retry_call
 
 log = logging.getLogger(__name__)
 
+# Deliberately the basic variant, not the newer "web_search_20260209" with
+# dynamic filtering. That one was tried and measured (2026-08-02) and is worse
+# *here*: it routes results through code execution, and its text blocks carry no
+# citations at all, so the brief's sources list degrades from "actually cited"
+# to "everything consulted" -- 105 entries instead of 22. It also breaks the
+# search count, because the extractor counts server_tool_use blocks and those
+# then include code-execution calls. Do not upgrade this without first fixing
+# citation extraction; see NOTES_FOR_PAYITO.md item 11.
 WEB_SEARCH_TOOL_TYPE = "web_search_20250305"
 
 # Generous, because a research call runs several web searches server-side

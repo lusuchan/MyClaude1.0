@@ -299,9 +299,11 @@ Three options, in the order I would pick them:
 I did not pick. It is a direction question about a path you explicitly deferred,
 which puts it here rather than in my hands.
 
-## 11. Web-search tool version — a one-line change I did not make
+## 11. Web-search tool version — tried, measured, reverted (closed)
 
-**New, 2026-08-02.** Surfaced while confirming your Sonnet 5 decision.
+**Status: closed (2026-08-02). You approved the swap; I made it, measured it,
+and reverted it. `web_search_20250305` stays. My recommendation was wrong, and
+the rest of this item is the evidence.**
 
 `briefbot/llm.py:19` pins:
 
@@ -332,3 +334,47 @@ component and telling you it was better on the strength of the release notes.
 current ones. If you want, I can make the change and note in `PROGRESS.md` that
 the comparison is outstanding — but the swap is yours to authorise, and the
 verdict needs more than one morning either way.
+
+### What happened when I actually ran it
+
+You said yes, so I swapped it and did a full live run. It is worse here, on the
+two things that matter most to how the brief reads:
+
+| | current `_20250305` | new `_20260209` |
+|---|---|---|
+| cited sources | 12 and 10 | **0 and 0** |
+| sources printed in the brief | 22 | **105, unfiltered** |
+| reported web searches | 11 | 27 (the cap is 6) |
+| wall clock | ~110s | ~293s |
+
+**The sources list is the real casualty.** The brief prints the sources the
+research *actually used*, not everything it looked at — that filtering was
+deliberate work, and it is what keeps the list at roughly 20 links instead of
+roughly 100. Dynamic filtering runs its search results through code execution,
+and when it does, the model's text no longer carries citation metadata at all.
+Without that, nothing can tell a source the brief used from one it merely
+consulted, so the list collapses back to everything. I confirmed this by running
+the same query through both variants and printing the response structure, rather
+than inferring it from the slowdown.
+
+**The search count also quietly became wrong** — the "27" above is not 27
+searches, it is searches plus the code-execution calls the new variant makes,
+which the counter cannot distinguish. A run summary that misreports what
+happened is a worse problem than a slow run, because it is the thing you would
+use to notice a bad run.
+
+**So: reverted.** `llm.py` now carries a comment explaining why the newer
+variant is not used, and the test pins the version with the same reasoning, so
+nobody spends another live run rediscovering this.
+
+**If you want it anyway, here is the actual price.** It is not a version bump —
+it needs `_extract` rewritten to recover source attribution from code-execution
+output, and I am not confident that is even possible cleanly, because knowing
+*which* sources the prose used is exactly what the citations surface provides
+and dynamic filtering removes. I would not start that without a reason beyond
+"newer".
+
+**My part in this.** I recommended the change from the release notes, and told
+you one run could not judge it. One run judged it immediately. The A/B probe
+that explained why took under a minute — that should have run before I brought
+you the recommendation, not after you approved it.

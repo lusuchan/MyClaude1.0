@@ -472,7 +472,67 @@ before they reach the context window. Given that research is this pipeline's
 core step, and that a degenerate near-empty macro result has been seen once
 already, that is plausibly a real improvement — but it changes how research
 behaves, so under the standing rules it is Payito's call, not mine. It is item
-11 in the notes.
+11 in the notes. **Payito approved it; it was then measured and reverted — see
+the next entry.**
+
+### The web-search upgrade was tried, measured, and reverted (2026-08-02)
+
+**Outcome: `web_search_20250305` stays.** Payito approved the swap to
+`web_search_20260209` on my recommendation. I made it, ran it, and it is worse
+here — so the change is reverted and this entry is what the session actually
+produced. The recommendation was mine and it was wrong; the measurement is the
+part worth keeping.
+
+**What the live run showed**, same watchlist, same prompts, one variable
+changed:
+
+| | `web_search_20250305` | `web_search_20260209` |
+|---|---|---|
+| cited sources | 12 and 10 | **0 and 0** |
+| sources in the brief | 22 | **105, unfiltered** |
+| reported web searches | 11 | 27 (`max_uses` is 6) |
+| wall clock | ~110s | ~293s |
+
+**Why, confirmed by probing the response shape rather than guessing.** A
+direct A/B on one identical query, printing the block types:
+
+```
+web_search_20250305  blocks: text 11, server_tool_use 2, web_search_tool_result 2   citations: 6
+web_search_20260209  blocks: text 9,  server_tool_use 7, web_search_tool_result 2,
+                             code_execution_tool_result 5                            citations: 0
+```
+
+Two distinct breakages, both structural rather than tuning:
+
+1. **No citations.** Dynamic filtering runs code execution under the hood and
+   the results arrive as `code_execution_tool_result`. The model's `text`
+   blocks then carry no `citations` at all, and `_extract` builds the brief's
+   sources list from exactly those. With none, every URL stays `cited=False`
+   and the list degrades from "what the brief actually used" to "everything
+   consulted" — 105 entries. That is a direct regression of the sources work
+   recorded under "Time left over" (104 unfiltered down to 25 cited), which was
+   deliberate and is one of the things that makes the brief readable.
+2. **The search count silently became wrong.** `_extract` counts
+   `server_tool_use` blocks as searches. Under dynamic filtering those include
+   code-execution invocations, so "27 web searches" was never 27 searches. A
+   run summary that misreports what happened is worse than a slower run.
+
+**The honest read.** Dynamic filtering is not a bad feature; it is a bad fit for
+a pipeline whose output depends on the citation surface. Upgrading would mean
+first rewriting `_extract` to recover source attribution from code-execution
+output — and there may be no clean way to know which sources the prose actually
+used, since that linkage is precisely what the citations API provides. That is a
+real piece of work, not a version bump, and it is not this session's job.
+
+**What stands now.** `llm.py:19` carries a comment saying why the newer variant
+is not used, so the next session does not rediscover this at the cost of another
+live run, and `test_llm.py` pins the version with the same reasoning. Notes item
+11 is closed with the measurement.
+
+**The lesson, narrowly.** I recommended this on the strength of release notes
+and flagged that one run could not assess it — then the first run assessed it
+decisively. The cheap A/B probe that explained *why* took under a minute and
+should have come before the recommendation, not after the approval.
 
 ---
 
