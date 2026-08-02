@@ -33,6 +33,8 @@ def test_the_shipped_watchlist_carries_both_benchmarks():
     # Phase 1 reads a single name's move against the tape, so it needs SPY for
     # the broad market and QQQ for tech/growth. Not interchangeable: a
     # tech-heavy watchlist against SPY alone hides how much of a move was beta.
+    # A day where QQQ drops and SPY holds is a different day from one where
+    # both drop, and one benchmark cannot tell those apart.
     symbols = load_watchlist().symbols
     assert "SPY" in symbols, "Phase 1 requires the broad-market benchmark"
     assert "QQQ" in symbols, "Phase 1 requires the tech/growth benchmark"

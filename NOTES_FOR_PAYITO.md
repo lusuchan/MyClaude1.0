@@ -51,39 +51,80 @@ it is the judgement step, and it is one call per day. Try
 noticeably sharper. I did not benchmark this; I had no basis to spend your money
 comparing.
 
-## 3. The watchlist is yours now — settled, but the `why` fields are still mine
+## 3. The watchlist — settled at eleven names, but one `why` field needs you
 
-**Status: resolved. Noted here because it was open for a while.**
+**Status: resolved, and now reconciled across two branches that had each
+solved half of it. One small thing below is still yours.**
 
 `watchlist.json` holds eleven names:
 
 > SPY, QQQ, GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN, JPM, XLE
 
-The first nine are the ones you specified. JPM and XLE you added after seeing
-them mentioned in the test suite — they were fixtures there, never on the
-briefed list, and you said you wanted them actually briefed. They are the two
-reads the tech names cannot give you: a bank for rates and credit, an energy
-ETF for where geopolitics shows up in a price first.
+Seven of those are yours directly — GOOG, META, AAPL, TSLA, NVDA, MSFT, AMZN,
+the mega-cap names off your personal watchlist. SPY and QQQ are the two
+benchmarks you confirmed when asked, and they sit at the top of the file, ahead
+of the single names, because they are reference points rather than positions.
+JPM and XLE you added after seeing them mentioned in the test suite — they were
+fixtures there, never on the briefed list, and you said you wanted them actually
+briefed. They are the two reads the tech names cannot give you: a bank for rates
+and credit, an energy ETF for where geopolitics shows up in a price first.
 
-Three things worth knowing about it:
+Commodities and crypto stay deliberately held back — that is the separate
+market-analyst path on its own branch, not merged into Phase 1. See item 10.
+
+### The one thing here that is still a question for you
+
+**`GOOG`'s `why` field says `"own it"`, and I cannot verify that.** It feeds the
+research prompt, so it is not decoration — "I own this" and "I am thinking about
+shorting this" produce genuinely different research. It arrived via the PR #3
+branch, where the `why` fields were filled in on your behalf; your own edit to
+this file (`e338486`) had no `why` fields at all, and the note you wrote with it
+said the names came off a watchlist screenshot, which is not the same as
+ownership. So it may be exactly right and something you said in that session, or
+it may be an inference that hardened into a fact.
+
+I kept it rather than deleting it, because throwing away a possibly-real
+statement about your positions is worse than flagging it. **Confirm or correct
+that one line.** The other ten say what each name is for structurally, which is
+the honest limit of what I can write without knowing what you hold.
+
+### Two things about the file itself
 
 - **SPY and QQQ are not editable in the way the other nine are.** Phase 1
   requires both benchmarks and `tests/test_config_cli.py` asserts they are
-  present. Drop one and the suite fails, deliberately.
-- **The `why` field on each entry is still my wording, not yours.** It feeds
-  the research prompt, so it is worth filling in honestly — "I own this" and
-  "I am thinking about shorting this" produce different research. Mine say what
-  each name is for structurally, which is the best I can do without knowing
-  your positions.
-- **Eleven is past the 5–10 you originally set, so I moved the fence.** The
-  test that bounds the watchlist size now allows 5–12 rather than 5–10; at
-  eleven names the old bound would have failed the suite. I did not treat that
-  as a decision to bring to you, since you asked for the eleventh and twelfth
-  names directly, but it is your constraint that moved, so you should know it
-  moved. Cost is barely affected: research is two Claude calls regardless of
-  list length, so each added name is one more yfinance fetch and a little more
-  context, not another round trip. If the list keeps growing, the thing that
-  degrades first is the brief's readability, not the bill.
+  present, in its own test. Drop one and the suite fails, deliberately. The
+  reason it is two and not one: everything else is an individual tech name, so
+  the first question about any move is whether it is a market story or a
+  stock-specific one. A day where QQQ falls and SPY does not is a different day
+  from one where both fall, and one benchmark cannot tell those apart.
+- **Eleven is past the 5–10 you originally set, so I moved the fence.** The size
+  bound now allows 5–12 rather than 5–10; at eleven names the old bound would
+  have failed the suite. I did not treat that as a decision to bring to you,
+  since you asked for the eleventh and twelfth names directly, but it is your
+  constraint that moved, so you should know it moved. Cost is barely affected:
+  research is two Claude calls regardless of list length, so each added name is
+  one more yfinance fetch and a little more context, not another round trip. If
+  the list keeps growing, the thing that degrades first is the brief's
+  readability, not the bill.
+
+### The typographic-quote trap, which will happen again
+
+Worth keeping even though it is fixed. Your edit landed on `main` as `e338486`
+with curly `“` `”` instead of ASCII `"` — almost certainly a paste from an
+editor that autocorrects quotes. JSON does not accept them, so
+`load_watchlist()` raised `ConfigError` before a single price was fetched, and
+Phase 1 was down end to end: both `python -m briefbot` and `pytest` failed at
+that first step. Nothing in `briefbot/` was wrong and nothing in `briefbot/`
+changed.
+
+If you edit `watchlist.json` in that same editor it will happen again, and the
+failure will look like a crash rather than a typo. The file is now deliberately
+ASCII-only, including the prose in `notes`, so anything non-ASCII appearing in
+it is a signal rather than a style choice. Quick check before a run:
+
+```bash
+python3 -c "import json; json.load(open('watchlist.json')); print('valid json')"
+```
 
 ## 4. Delivery is still just a file
 
@@ -113,8 +154,10 @@ putting a job on your machine's schedule is your call, not mine.
   your Anthropic key.
 - **No Phase 2 code.** You asked for research only. Findings are in
   `PHASE2_NOTES.md`; there is not a line of indicator code in the repo.
-- **No PR opened.** Work is committed and pushed to
-  `claude/daily-brief-phase-1-24xgbn`. Say the word if you want it opened.
+- **Nothing is left open on GitHub.** PRs #1 and #3 merged to `main`; #4 and #5
+  merged to `claude/daily-brief-phase-1-24xgbn`, which is what let the two lines
+  drift apart in the first place — see item 10. This reconciliation is on
+  `claude/progress-planning-5dv3mp` and needs a PR into `main` to land.
 
 ## 7. Environment-specific thing you can ignore on your own machine
 
@@ -151,9 +194,14 @@ the Phase 1 build. So a change you had good reason to think was applied was
 live in the docs and absent from the code, and nothing would have caught that
 except reading the JSON. Two loose ends follow from it:
 
-1. **If the fix exists on another branch or in another session, it will now
-   conflict with this one.** Two different edits to the same block of ticker
-   lines. Worth checking before merging anything watchlist-shaped.
+1. ~~**If the fix exists on another branch or in another session, it will now
+   conflict with this one.**~~ **It did, and it has been resolved.** The fix
+   existed on `main` as PR #3, and had done since before this was written — two
+   different edits to the same block of ticker lines, exactly as predicted. Both
+   sides are now merged into one line of history; see item 10 and the
+   reconciliation entry in `PROGRESS.md`. The lesson worth keeping: the conflict
+   was predicted correctly and then not acted on for two sessions, because
+   checking cost a `git fetch` that nobody ran.
 2. **The benchmark assertion is the durable half of this.** The ticker list can
    drift again; a test cannot drift silently. That is why it went in as its own
    test rather than one more line in the existing one.
@@ -195,3 +243,47 @@ territory can reach. Three options, in the order I would pick them:
 I did not pick one. Until you do, the honest thing is what I did this session:
 say in `PROGRESS.md` that the check could not be run and why, rather than
 quietly skipping it and letting the file imply otherwise.
+
+## 10. Branch hygiene — one merge to do, one branch to decide about
+
+**Status: needs a decision, and the first half is a five-minute job.**
+
+Phase 1 spent two sessions existing as two half-correct versions on two
+branches, because PRs #4 and #5 were merged into `claude/daily-brief-phase-1-24xgbn`
+instead of into `main`. Neither branch could have produced a correct brief with
+your real tickers *and* JPM and XLE until now. That is fixed — the reconciliation
+is on `claude/progress-planning-5dv3mp`, fully tested — but it is fixed on a
+branch, so:
+
+**1. This needs to land on `main`.** Everything is merged, green, and verified
+from a clean venv. It wants a PR into `main`, which I have not opened because
+you have not asked for one. Say the word and it goes up. Until it lands, `main`
+still has the nine-name watchlist and the 5–10 size bound.
+
+**2. `claude/multi-asset-yfinance-research-40r733` is an orphan, and it is not
+empty.** It holds `MULTI_ASSET_NOTES.md` — 514 lines of research on commodities,
+crypto and multi-asset data sources, findings only, no implementation. It is
+branched from before PR #3, so it has no knowledge of any of the watchlist work
+and would revert several files if merged naively.
+
+Your own note in `watchlist.json` says commodities and crypto are "held back for
+now, pending a separate market-analyst path," so I read this branch as
+deliberately unmerged and did **not** touch it. That is the right call for the
+tickers. It is a worse call for the document: 514 lines of research that exist
+on exactly one branch, in a repo where the trunk has already drifted twice, is
+research that will be silently lost the first time someone prunes branches.
+
+Three options, in the order I would pick them:
+
+1. **Cherry-pick just `MULTI_ASSET_NOTES.md` onto the trunk** and leave the
+   watchlist alone. The research becomes durable and reviewable; the tickers
+   stay held back exactly as you wanted. This is what I would do, and it is
+   about ten minutes.
+2. **Leave the branch and accept the risk**, having now written down that it
+   exists — which is most of the value, and costs nothing.
+3. **Merge the branch properly** when the market-analyst path actually starts.
+   Fine, but it means resolving a stale conflict later instead of now, and the
+   conflict grows with every trunk commit.
+
+I did not pick. It is a direction question about a path you explicitly deferred,
+which puts it here rather than in my hands.
