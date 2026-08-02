@@ -118,6 +118,12 @@ pytest              # 212 tests, no network
 pytest -m live      # 11 more that hit Yahoo and the Claude API for real
 ```
 
+`.github/workflows/ci.yml` runs the offline suite on every push and pull
+request, against Python 3.11 and 3.12. It needs no secrets, because `pytest`
+defaults to `-m "not live"` — the network tests stay opt-in and never run in CI.
+It also checks that `watchlist.json` parses and is ASCII-only, which is not
+boilerplate: that exact file broke Phase 1 end to end once (see below).
+
 The live tests are opt-in because they cost time and tokens. They exist because
 mocked tests cannot catch an upstream shape change, and yfinance is an
 unofficial wrapper around a payload Yahoo alters without notice. They assert on

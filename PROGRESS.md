@@ -534,6 +534,47 @@ and flagged that one run could not assess it — then the first run assessed it
 decisively. The cheap A/B probe that explained *why* took under a minute and
 should have come before the recommendation, not after the approval.
 
+### CI exists now, and it guards the thing that actually broke (2026-08-02)
+
+**What was wrong.** The repo had no CI at all. The only workflow GitHub listed
+was its own auto-generated Dependency Graph job, which is not a pull-request
+check — `check_runs` on PR #7 was literally zero. So the 212 offline tests only
+ever ran wherever someone happened to run them, and a pull request could break
+any of them and still merge with nothing red.
+
+That gap mattered more here than it would in most repos, because several of
+those tests exist to catch silent drift rather than obvious bugs: the SPY/QQQ
+benchmark assertion, the watchlist size bound, and the test that the brief's
+numbers come from the snapshot even when the model states a different figure in
+its prose. Those guard against a slow wrong turn, and a guard nobody runs is not
+a guard.
+
+**What was added.** `.github/workflows/ci.yml`, on every push and pull request,
+against Python 3.11 and 3.12. Three steps: `watchlist.json` parses as JSON;
+`watchlist.json` is ASCII-only, failing with the line number of the first
+offending byte; then `pytest -v`.
+
+**No secrets, by construction.** `pytest.ini` pins `addopts = -m "not live"`, so
+the eleven network tests are excluded by default. CI never touches Yahoo or the
+Claude API, needs no `ANTHROPIC_API_KEY`, and costs nothing per run. The live
+tests stay what they were: opt-in, run by hand when a payload shape is in doubt.
+
+**Why two of the three steps are about one JSON file.** Because that file is
+what actually took Phase 1 down end to end — curly `“` `”` pasted from an editor
+that autocorrects quotes, `json.load()` failing before a single price was
+fetched, both `python -m briefbot` and `pytest` dead at the first step. It is
+recorded under "Fixed" above and flagged in `README.md` and the notes as a thing
+that will happen again. It is now the cheapest possible check, run automatically.
+
+**Verified the way this project verifies things — by watching it go red.** All
+three steps were run locally first and pass. Then a copy of `watchlist.json` was
+deliberately corrupted with the same curly-quote substitution that caused the
+original outage, and both guards were confirmed to **exit non-zero**: the JSON
+step with `JSONDecodeError: Expecting property name enclosed in double quotes:
+line 5`, the ASCII step with `6 non-ASCII byte(s); first at line 5`. A check that
+has only ever been seen green is not yet evidence — the same standard applied to
+the benchmark test earlier in this file.
+
 ---
 
 ## Next, when you want it
